@@ -145,7 +145,10 @@ class App {
         // 1. Validate with chess.js
         try {
             const move = this.game.move(moveObj);
-            if (!move) return false; // Illegal move
+            if (!move) {
+                this.showFeedback("Illegal move!", "error");
+                return false;
+            }
 
             // 2. Check if it matches puzzle solution
             const expectedMoveLan = this.puzzleMoves[this.moveIndex]; // e.g. "e2g2"
