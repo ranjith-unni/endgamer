@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EndGamer - Chess Puzzles</title>
+    <link rel="stylesheet" href="./src/index.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <header>
+            <h1>EndGamer</h1>
+            <div id="game-status">Select a difficulty to start</div>
+        </header>
+
+        <main>
+            <div id="board-container">
+                <!-- Chessboard will be rendered here -->
+                <div id="board" class="chessboard"></div>
+            </div>
+
+            <div id="controls">
+                <div class="panel">
+                    <h2>Puzzle</h2>
+                    <p id="instruction">Loading puzzle...</p>
+                    <div class="difficulty-selector">
+                        <button class="btn-difficulty active" data-level="easy">Easy</button>
+                        <button class="btn-difficulty" data-level="medium">Medium</button>
+                        <button class="btn-difficulty" data-level="hard">Hard</button>
+                    </div>
+                    <div class="action-buttons">
+                        <button id="btn-next" class="btn-primary">Next Puzzle</button>
+                        <button id="btn-hint" class="btn-secondary">Hint</button>
+                    </div>
+                    <div class="settings-actions">
+                        <button id="btn-reset" class="btn-text">Reset Progress</button>
+                    </div>
+                </div>
+                <div class="score-board">
+                    <div class="score-item">
+                        <span class="label">Puzzles Solved</span>
+                        <span id="score-solved" class="value">0</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="label">Hints Used</span>
+                        <span id="score-hints" class="value">0</span>
+                    </div>
+                </div>
+                <div id="feedback-container">
+                    <div id="feedback-msg"></div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Custom Confirmation Modal -->
+        <div id="modal-overlay" class="hidden">
+            <div class="modal">
+                <h3 id="modal-title">Confirm</h3>
+                <p id="modal-message">Are you sure?</p>
+                <div class="modal-actions">
+                    <button id="modal-btn-cancel" class="btn-secondary">Cancel</button>
+                    <button id="modal-btn-confirm" class="btn-primary">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load scripts in dependency order -->
+    <script src="./src/data/puzzles.js"></script>
+    <script src="./src/utils/PuzzleManager.js"></script>
+    <script src="./src/components/ChessBoard.js"></script>
+    <script src="./src/app.js"></script>
+</body>
+
+</html>

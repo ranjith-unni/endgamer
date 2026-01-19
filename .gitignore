@@ -1,0 +1,12 @@
+# Local environment files
+.DS_Store
+Thumbs.db
+
+# Project artifacts
+puzzles_expanded.js
+/brain/
+
+# IDE files
+.vscode/
+.idea/
+.gemini/
