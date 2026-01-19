@@ -135,6 +135,7 @@ class App {
         this.board.setHintSquare(null); // Clear hint on new puzzle
 
         this.updateStatus(puzzle.description);
+        document.getElementById('puzzle-number').textContent = "#" + puzzle.id;
         this.showFeedback(""); // Clear feedback
         this.updateScore();
     }
