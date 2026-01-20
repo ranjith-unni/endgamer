@@ -1,0 +1,20 @@
+﻿"[Event ""Puzzle""]
+[Site ""https://www.lichess.org/training/UjZa9""]
+[Themes ""endgame long mate mateIn3 sacrifice""]
+[FEN ""6rk/p6p/1p2ppr1/4Q3/3PRP2/q5P1/7P/4R1K1 w - - 0 27""]
+[SetUp ""1""]
+
+27. Qxe6 Rxg3+ 28. hxg3 Qxg3+ 29. Kf1 Qg2# *",endgame long mate mateIn3 sacrifice
+"[Event ""Puzzle""]
+[Site ""https://www.lichess.org/training/2aZBZ""]
+[Themes ""endgame long mate mateIn3""]
+[FEN ""2R5/5rkp/1p3p2/6pP/3pP3/p2P3Q/6PK/3q4 b - - 3 38""]
+[SetUp ""1""]
+
+38... g4 39. h6+ Kg6 40. Rg8+ Rg7 41. Rxg7# *",endgame long mate mateIn3
+"[Event ""Puzzle""]
+[Site ""https://www.lichess.org/training/lbrNX""]
+[Themes ""attraction long mate mateIn3 middlegame sacrifice""]
+[FEN ""r6k/ppp3pp/4Q3/1b6/3P4/qPP3P1/P3N2r/1K1R3R b - - 2 23""]
+[SetUp ""1""]
+
