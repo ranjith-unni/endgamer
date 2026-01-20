@@ -1,59 +1,72 @@
 const fs = require('fs');
 const path = require('path');
 
-const PUZZLES_FILE = path.join(__dirname, '../src/data/puzzles.js');
+const DATA_DIR = path.join(__dirname, '../src/data');
 
-function readCurrentPuzzles() {
-    const content = fs.readFileSync(PUZZLES_FILE, 'utf8');
-    const match = content.match(/window\.GAME_DATA\.puzzles\s*=\s*(\[[\s\S]*?\]);/);
-    const rawJson = match[1]
-        .replace(/\/\/.*$/gm, '')
-        .replace(/,\s*([\]}])/g, '$1');
-    return JSON.parse(rawJson);
+function readSplitPuzzles(difficulty) {
+    const filePath = path.join(DATA_DIR, `puzzles_${difficulty}.js`);
+    if (!fs.existsSync(filePath)) return [];
+    try {
+        const content = fs.readFileSync(filePath, 'utf8');
+        const match = content.match(/\[\s*\{[\s\S]*\}\s*\]/);
+        if (!match) return [];
+        return JSON.parse(match[0]);
+    } catch (e) {
+        console.error(`Error parsing ${filePath}:`, e.message);
+        return [];
+    }
 }
 
-function writePuzzles(puzzles) {
-    const header = "window.GAME_DATA = window.GAME_DATA || {};\nwindow.GAME_DATA.puzzles = ";
-    const footer = ";\n";
-    const content = header + JSON.stringify(puzzles, null, 4) + footer;
-    fs.writeFileSync(PUZZLES_FILE, content, 'utf8');
+function writeSplitPuzzles(difficulty, puzzles) {
+    const fileName = `puzzles_${difficulty}.js`;
+    const filePath = path.join(DATA_DIR, fileName);
+    const fileContent = `window.GAME_DATA = window.GAME_DATA || {};
+window.GAME_DATA.puzzles = (window.GAME_DATA.puzzles || []).concat(${JSON.stringify(puzzles, null, 4)});
+`;
+    fs.writeFileSync(filePath, fileContent, 'utf8');
 }
 
 function cleanup() {
-    const puzzles = readCurrentPuzzles();
-    console.log(`Initial total: ${puzzles.length}`);
+    console.log("Starting global deduplication and renumbering sweep...");
 
-    // 1. Deduplicate by FEN base
+    const categories = ['easy', 'medium', 'hard'];
+    const allUnique = [];
     const seenFens = new Set();
-    const uniquePuzzles = [];
     let duplicates = 0;
 
-    puzzles.forEach(p => {
-        const fenBase = p.fen.split(' ')[0];
-        if (!seenFens.has(fenBase)) {
-            seenFens.add(fenBase);
-            uniquePuzzles.push(p);
-        } else {
-            duplicates++;
-        }
+    categories.forEach(diff => {
+        const puzzles = readSplitPuzzles(diff);
+        puzzles.forEach(p => {
+            const fenBase = p.fen.split(' ')[0];
+            if (!seenFens.has(fenBase)) {
+                seenFens.add(fenBase);
+                allUnique.push(p);
+            } else {
+                duplicates++;
+            }
+        });
     });
 
-    console.log(`Removed ${duplicates} duplicates.`);
+    console.log(`Global deduplication complete. Removed ${duplicates} duplicates.`);
 
-    // 2. Renumber sequentially within difficulty categories to preserve user logic
-    const easy = uniquePuzzles.filter(p => p.difficulty === 'easy').sort((a, b) => a.id - b.id);
-    const medium = uniquePuzzles.filter(p => p.difficulty === 'medium').sort((a, b) => a.id - b.id);
-    const hard = uniquePuzzles.filter(p => p.difficulty === 'hard').sort((a, b) => a.id - b.id);
+    // Renumber within categories
+    const minIds = { easy: 1, medium: 600, hard: 4000 };
 
-    console.log(`Counts: Easy=${easy.length}, Medium=${medium.length}, Hard=${hard.length}`);
+    categories.forEach(diff => {
+        const sorted = allUnique
+            .filter(p => p.difficulty === diff)
+            .sort((a, b) => {
+                if (a.id !== undefined && b.id !== undefined) return a.id - b.id;
+                return 0;
+            });
 
-    easy.forEach((p, i) => p.id = 1 + i);
-    medium.forEach((p, i) => p.id = 600 + i);
-    hard.forEach((p, i) => p.id = 4000 + i);
+        sorted.forEach((p, i) => {
+            p.id = minIds[diff] + i;
+        });
 
-    const finalPuzzles = [...easy, ...medium, ...hard];
-    writePuzzles(finalPuzzles);
-    console.log(`Final total: ${finalPuzzles.length}`);
+        writeSplitPuzzles(diff, sorted);
+        console.log(`Category ${diff.toUpperCase()} finalized with ${sorted.length} puzzles.`);
+    });
 }
 
 cleanup();
