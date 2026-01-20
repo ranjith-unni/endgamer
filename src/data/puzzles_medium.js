@@ -409,17 +409,6 @@ window.GAME_DATA.puzzles = (window.GAME_DATA.puzzles || []).concat(
         ]
     },
     {
-        "id": 637,
-        "fen": "8/3R4/2k1Pp2/6b1/Kp1P4/4rp2/1q2P2/6B1 w - - 0 1",
-        "difficulty": "medium",
-        "description": "White to move. Mate in Two.",
-        "solution": [
-            "f2f3",
-            "e3e4",
-            "d4d5"
-        ]
-    },
-    {
         "id": 638,
         "fen": "4r3/1N3p2/1p2q3/3p1bP1/3k1N1R/PPRP4/rp2QP1B/n3K3 w - - 0 1",
         "difficulty": "medium",
