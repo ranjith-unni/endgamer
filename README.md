@@ -1,32 +1,33 @@
 # EndGamer
 
-EndGamer is a web-based chess endgame puzzle trainer designed to help players sharpen their tactical skills in the final stages of the game.
+EndGamer is a premium web-based chess endgame puzzle trainer designed to help players sharpen their tactical skills in the final stages of the game.
 
 ## Features
 
-- **Curated Puzzles**: A wide variety of endgame tactical positions.
-- **Difficulty Levels**: 
-  - **Easy**: Mate in One puzzles.
-  - **Medium**: Mate in Two puzzles.
-  - **Hard**: Mate in Three puzzles.
-- **Interactive Board**: Drag-and-drop piece movement with legal move validation.
-- **Hint System**: Provides assistance by identifying the piece that needs to move.
-- **Statistics**: Tracks solved puzzles and hints used (saved to your browser's local storage).
+- **Massive Puzzle Library**: Over 2,000 curated endgame puzzles, including:
+  - **Easy**: Mate in One (Quick tactical checks).
+  - **Medium**: Mate in Two (Deeper calculation).
+  - **Hard**: Mate in Three (Complex endgame combinations).
+- **Pro Premium Design**: A beautiful, distraction-free **Dark Minimalist Wood** theme optimized for focus and aesthetics.
+- **Interactive Board**: Fluid drag-and-drop piece movement with legal move validation and visual highlights.
+- **Intelligent Hint System**: Assistance that identifies the critical piece to move when you're stuck.
+- **Progress Tracking**: Automatic score tracking and hint usage saved to your browser's local storage.
 
 ## Getting Started
 
-Simply open `index.html` in any modern web browser to start solving puzzles.
+Simply open `index.html` in any modern web browser to start your training session.
 
 ## Maintenance and Extension
 
-The project includes scripts for generating and expanding the puzzle database:
-- `generate_puzzles.js`: A Node.js script for processing puzzle data.
-- `generate_puzzles.py`: A Python script for processing puzzle data.
+The project features a robust data management system for scaling and maintenance:
+- **`generate_puzzles.js`**: Node.js utility for processing and formatting large datasets.
+- **`generate_puzzles.py`**: Python-based automation for library expansion and cleanup.
+- **Automated ID Management**: Scripts to ensure consistent sorting and numbering across all difficulty levels.
 
-To add new puzzles, update the raw data in these scripts and run them to update `src/data/puzzles.js`.
+To expand the library further, update the source data in the management scripts and rebuild the `src/data/puzzles.js` database.
 
 ## Technologies
 
-- **Frontend**: HTML5, CSS3, Vanilla JavaScript
-- **Logic**: [Chess.js](https://github.com/jhlywa/chess.js) for move validation.
-- **Data**: JSON-based puzzle storage.
+- **Frontend**: HTML5, high-performance CSS3, Vanilla JavaScript.
+- **Chess Engine Logic**: [Chess.js](https://github.com/jhlywa/chess.js) for precise move validation and FEN handling.
+- **Data Architecture**: Optimized JSON-based puzzle storage for fast loading and offline access.
