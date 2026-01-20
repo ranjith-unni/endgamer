@@ -1,5 +1,6 @@
 window.GAME_DATA = window.GAME_DATA || {};
-window.GAME_DATA.puzzles = (window.GAME_DATA.puzzles || []).concat([
+window.GAME_DATA.puzzles = (window.GAME_DATA.puzzles || []).concat(
+[
     {
         "id": 1,
         "fen": "3q1rk1/5pbp/5Qp1/8/8/2B5/5PPP/6K1 w - - 0 1",
@@ -1125,4 +1126,5 @@ window.GAME_DATA.puzzles = (window.GAME_DATA.puzzles || []).concat([
         ],
         "id": 125
     }
-]);
+]
+);
