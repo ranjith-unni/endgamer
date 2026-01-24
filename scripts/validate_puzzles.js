@@ -31,7 +31,26 @@ function validatePuzzle(puzzle) {
         return { valid: false, reason: `FEN says black to move, but description is: "${puzzle.description}"` };
     }
 
-    // 2. Play the solution moves
+    // 2. Verify hint (first move) matches the side to move
+    const firstMove = puzzle.solution[0];
+    if (!firstMove) {
+        return { valid: false, reason: 'Puzzle has no solution moves' };
+    }
+
+    const fromSquare = firstMove.substring(0, 2);
+    const piece = chess.get(fromSquare);
+
+    if (!piece) {
+        return { valid: false, reason: `Hint error: No piece found at starting square ${fromSquare}` };
+    }
+
+    if (piece.color !== sideToMove) {
+        const expectedColor = sideToMove === 'w' ? 'white' : 'black';
+        const actualColor = piece.color === 'w' ? 'white' : 'black';
+        return { valid: false, reason: `Hint/Color mismatch: Description says ${expectedColor} to move, but first move suggests moving a ${actualColor} piece (${piece.type}) on ${fromSquare}` };
+    }
+
+    // 3. Play the solution moves
     for (const move of puzzle.solution) {
         const result = chess.move(move, { sloppy: true });
         if (!result) {
@@ -39,18 +58,20 @@ function validatePuzzle(puzzle) {
         }
     }
 
-    // 3. Verify final state is checkmate
+    // 4. Verify final state is checkmate
     if (!chess.in_checkmate()) {
         return { valid: false, reason: 'Final state is not checkmate' };
     }
 
-    // 4. Verify the winner matches who was supposed to move first
+    // 5. Verify the winner matches who was supposed to move first
     // If white started, and it's mate, white won. chess.turn() should be 'b'.
     if (sideToMove === 'w' && chess.turn() !== 'b') {
-        return { valid: false, reason: 'White to move, but White did not win (Black turn expected after mate)' };
+        const turnAfterMate = chess.turn() === 'w' ? 'white' : 'black';
+        return { valid: false, reason: `White was supposed to win, but it's ${turnAfterMate}'s turn after mate (Black turn expected)` };
     }
     if (sideToMove === 'b' && chess.turn() !== 'w') {
-        return { valid: false, reason: 'Black to move, but Black did not win (White turn expected after mate)' };
+        const turnAfterMate = chess.turn() === 'w' ? 'white' : 'black';
+        return { valid: false, reason: `Black was supposed to win, but it's ${turnAfterMate}'s turn after mate (White turn expected)` };
     }
 
     return { valid: true };
@@ -118,20 +139,27 @@ function processFile(filePath) {
 }
 
 // Main execution
-console.log("Starting Puzzle Validation...");
-const summary = { total: 0, removed: 0 };
+if (require.main === module) {
+    console.log("Starting Puzzle Validation...");
+    const summary = { total: 0, removed: 0 };
 
-DATA_FILES.forEach(file => {
-    const result = processFile(file);
-    if (result) {
-        summary.total += result.total;
-        summary.removed += result.invalid;
-    }
-});
+    DATA_FILES.forEach(file => {
+        const result = processFile(file);
+        if (result) {
+            summary.total += result.total;
+            summary.removed += result.invalid;
+        }
+    });
 
-console.log(`\n=====================================`);
-console.log(`Validation Summary:`);
-console.log(`Total Puzzles Checked: ${summary.total}`);
-console.log(`Total Puzzles Removed: ${summary.removed}`);
-console.log(`Total Puzzles Remaining: ${summary.total - summary.removed}`);
-console.log(`=====================================\n`);
+    console.log(`\n=====================================`);
+    console.log(`Validation Summary:`);
+    console.log(`Total Puzzles Checked: ${summary.total}`);
+    console.log(`Total Puzzles Removed: ${summary.removed}`);
+    console.log(`Total Puzzles Remaining: ${summary.total - summary.removed}`);
+    console.log(`=====================================\n`);
+}
+
+module.exports = {
+    validatePuzzle,
+    processFile
+};

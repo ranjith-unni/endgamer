@@ -1,0 +1,12 @@
+{
+  "name": "endgamer",
+  "version": "1.0.0",
+  "description": "Chess endgame puzzle trainer",
+  "main": "src/app.js",
+  "scripts": {
+    "test": "node scripts/test_puzzles.js",
+    "validate": "node scripts/validate_puzzles.js"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
