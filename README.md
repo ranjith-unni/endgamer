@@ -4,7 +4,7 @@ EndGamer is a premium web-based chess endgame puzzle trainer designed to help pl
 
 ## Features
 
-- **Massive Puzzle Library**: Over 2,000 curated endgame puzzles, including:
+- **Curated Puzzle Library**: 349 hand-picked endgame puzzles, including:
   - **Easy**: Mate in One (Quick tactical checks).
   - **Medium**: Mate in Two (Deeper calculation).
   - **Hard**: Mate in Three (Complex endgame combinations).
