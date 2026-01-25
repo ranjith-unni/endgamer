@@ -14,6 +14,7 @@ class App {
         this.lastHintMoveIndex = -1; // Track which move index last received a hint
 
         this.score = this.loadScore();
+        this.sessionSolvedPuzzles = new Set(); // Track puzzles solved in this session
         this.currentTheme = localStorage.getItem('endgamer_theme') || 'classic';
         this.applyTheme(this.currentTheme);
 
@@ -292,9 +293,17 @@ class App {
     }
 
     handleWin() {
-        if (this.currentPuzzle) {
-            this.puzzleManager.markAsSolved(this.currentPuzzle.id);
+        if (!this.currentPuzzle) return;
+
+        // Check if already solved in this session
+        if (this.sessionSolvedPuzzles.has(this.currentPuzzle.id)) {
+            this.showFeedback("Puzzle Solved! (Already solved in this session)", "info");
+            return;
         }
+
+        this.puzzleManager.markAsSolved(this.currentPuzzle.id);
+        this.sessionSolvedPuzzles.add(this.currentPuzzle.id);
+
         this.score.solved++;
         this.saveScore();
         this.updateScore();
