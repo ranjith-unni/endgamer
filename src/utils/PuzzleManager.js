@@ -51,4 +51,8 @@ window.PuzzleManager = class PuzzleManager {
         const randomIndex = Math.floor(Math.random() * unsolved.length);
         return unsolved[randomIndex];
     }
+
+    getPuzzleById(id) {
+        return this.puzzles.find(p => p.id === parseInt(id));
+    }
 }

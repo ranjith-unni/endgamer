@@ -14,6 +14,9 @@ class App {
         this.lastHintMoveIndex = -1; // Track which move index last received a hint
 
         this.score = this.loadScore();
+        this.sessionSolvedPuzzles = new Set(); // Track puzzles solved in this session
+        this.currentTheme = localStorage.getItem('endgamer_theme') || 'classic';
+        this.applyTheme(this.currentTheme);
 
         this.init();
     }
@@ -63,8 +66,51 @@ class App {
             this.handleHint();
         });
 
-        // Reset button
+        // Settings button
+        document.getElementById('btn-settings').addEventListener('click', () => {
+            this.toggleSettings(true);
+        });
+
+        // Settings Close button
+        document.getElementById('settings-btn-close').addEventListener('click', () => {
+            this.toggleSettings(false);
+        });
+
+        // Theme buttons
+        document.querySelectorAll('.btn-theme').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const theme = e.currentTarget.dataset.theme;
+                this.currentTheme = theme;
+                localStorage.setItem('endgamer_theme', theme);
+                this.applyTheme(theme);
+
+                // Update UI
+                document.querySelectorAll('.btn-theme').forEach(b => b.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+            });
+        });
+
+        // Go to puzzle button
+        document.getElementById('btn-go-to-puzzle').addEventListener('click', () => {
+            const puzzleId = document.getElementById('input-puzzle-number').value;
+            if (puzzleId) {
+                this.goToPuzzle(puzzleId);
+                this.toggleSettings(false);
+            }
+        });
+
+        // Initial theme UI state
+        document.querySelectorAll('.btn-theme').forEach(btn => {
+            if (btn.dataset.theme === this.currentTheme) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        // Reset button (updated listener since it moved)
         document.getElementById('btn-reset').addEventListener('click', () => {
+            this.toggleSettings(false); // Close settings first
             this.showCustomConfirm(
                 "Reset Progress?",
                 "This will clear all your solved puzzles and statistics. Are you sure you want to start over?",
@@ -86,6 +132,34 @@ class App {
                 }
             );
         });
+    }
+
+    toggleSettings(show) {
+        const overlay = document.getElementById('settings-overlay');
+        if (show) {
+            overlay.classList.remove('hidden');
+            // Sync puzzle number input
+            if (this.currentPuzzle) {
+                document.getElementById('input-puzzle-number').value = this.currentPuzzle.id;
+            }
+        } else {
+            overlay.classList.add('hidden');
+        }
+    }
+
+    applyTheme(themeName) {
+        document.body.dataset.theme = themeName;
+    }
+
+    goToPuzzle(id) {
+        const puzzle = this.puzzleManager.getPuzzleById(id);
+        if (puzzle) {
+            this.currentPuzzle = puzzle;
+            this.setupPuzzle(puzzle);
+            this.showFeedback(`Navigated to puzzle #${id}`, "info");
+        } else {
+            this.showFeedback(`Puzzle #${id} not found!`, "error");
+        }
     }
 
     showCustomConfirm(title, message, onConfirm) {
@@ -121,7 +195,10 @@ class App {
             alert('No more puzzles in this difficulty!');
             return;
         }
+        this.setupPuzzle(puzzle);
+    }
 
+    setupPuzzle(puzzle) {
         this.currentPuzzle = puzzle;
         this.game.load(puzzle.fen);
         this.puzzleMoves = puzzle.solution; // e.g. ["e2g2", "g8h8"]
@@ -136,6 +213,11 @@ class App {
 
         this.updateStatus(puzzle.description);
         document.getElementById('puzzle-number').textContent = "#" + puzzle.id;
+
+        // Update input in settings if it's open
+        const input = document.getElementById('input-puzzle-number');
+        if (input) input.value = puzzle.id;
+
         this.showFeedback(""); // Clear feedback
         this.updateScore();
     }
@@ -211,9 +293,17 @@ class App {
     }
 
     handleWin() {
-        if (this.currentPuzzle) {
-            this.puzzleManager.markAsSolved(this.currentPuzzle.id);
+        if (!this.currentPuzzle) return;
+
+        // Check if already solved in this session
+        if (this.sessionSolvedPuzzles.has(this.currentPuzzle.id)) {
+            this.showFeedback("Puzzle Solved! (Already solved in this session)", "info");
+            return;
         }
+
+        this.puzzleManager.markAsSolved(this.currentPuzzle.id);
+        this.sessionSolvedPuzzles.add(this.currentPuzzle.id);
+
         this.score.solved++;
         this.saveScore();
         this.updateScore();
