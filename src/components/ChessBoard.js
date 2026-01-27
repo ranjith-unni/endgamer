@@ -12,6 +12,19 @@ window.ChessBoard = class ChessBoard {
 
         // Bind methods
         this.handleSquareClick = this.handleSquareClick.bind(this);
+        this.handlePromotionSelect = this.handlePromotionSelect.bind(this);
+
+        this.pendingMove = null;
+        this.setupPromotionListeners();
+    }
+
+    setupPromotionListeners() {
+        document.querySelectorAll('.btn-promotion').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const piece = e.currentTarget.dataset.piece;
+                this.handlePromotionSelect(piece);
+            });
+        });
     }
 
     setGame(chessInstance) {
@@ -144,11 +157,29 @@ window.ChessBoard = class ChessBoard {
                 return;
             }
 
-            // Try move
+            // Check if it's a promotion move
+            const piece = this.game.get(this.selectedSquare);
+            const isPawn = piece && piece.type === 'p';
+            const targetRank = parseInt(square[1]);
+            const isPromotionRank = (piece.color === 'w' && targetRank === 8) || (piece.color === 'b' && targetRank === 1);
+
+            if (isPawn && isPromotionRank) {
+                // Verify it's a legal move first
+                const moves = this.game.moves({ square: this.selectedSquare, verbose: true });
+                const isLegal = moves.some(m => m.to === square);
+
+                if (isLegal) {
+                    this.pendingMove = { from: this.selectedSquare, to: square };
+                    this.showPromotionModal(piece.color);
+                    return;
+                }
+            }
+
+            // Try normal move
             const move = {
                 from: this.selectedSquare,
                 to: square,
-                promotion: 'q' // Always promote to queen for simplicity for now
+                promotion: 'q' // Default for non-pawn-to-8th moves (shouldn't matter)
             };
 
             // Validate move via callback (which calls chess.js)
@@ -161,8 +192,8 @@ window.ChessBoard = class ChessBoard {
             } else {
                 // Invalid move. 
                 // If clicked on another own piece, select it instead
-                const piece = this.game.get(square);
-                if (piece && piece.color === this.game.turn()) {
+                const pieceAtTarget = this.game.get(square);
+                if (pieceAtTarget && pieceAtTarget.color === this.game.turn()) {
                     this.selectedSquare = square;
                     this.render();
                 } else {
@@ -177,6 +208,33 @@ window.ChessBoard = class ChessBoard {
                 this.selectedSquare = square;
                 this.render();
             }
+        }
+    }
+
+    showPromotionModal(color) {
+        const overlay = document.getElementById('promotion-overlay');
+        overlay.classList.remove('hidden');
+        document.body.classList.toggle('body-turn-black', color === 'b');
+    }
+
+    handlePromotionSelect(piece) {
+        if (!this.pendingMove) return;
+
+        const move = {
+            ...this.pendingMove,
+            promotion: piece
+        };
+
+        const result = this.onMove(move);
+        if (result) {
+            this.selectedSquare = null;
+            this.pendingMove = null;
+            document.getElementById('promotion-overlay').classList.add('hidden');
+        } else {
+            // This shouldn't happen if isLegal passed
+            this.pendingMove = null;
+            document.getElementById('promotion-overlay').classList.add('hidden');
+            this.render();
         }
     }
 }

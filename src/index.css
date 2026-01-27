@@ -36,8 +36,10 @@ body {
 
 #app {
     width: 100%;
-    max-width: 1200px;
+    max-width: 1400px;
     background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.1), transparent);
+    padding: 2rem;
+    border-radius: 2rem;
 }
 
 header {
@@ -348,7 +350,8 @@ main {
 
 /* Custom Confirmation Modal */
 #modal-overlay,
-#settings-overlay {
+#settings-overlay,
+#promotion-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -364,7 +367,8 @@ main {
 }
 
 #modal-overlay.hidden,
-#settings-overlay.hidden {
+#settings-overlay.hidden,
+#promotion-overlay.hidden {
     opacity: 0;
     pointer-events: none;
 }
@@ -383,7 +387,8 @@ main {
 }
 
 #modal-overlay.hidden .modal,
-#settings-overlay.hidden .modal {
+#settings-overlay.hidden .modal,
+#promotion-overlay.hidden .modal {
     transform: translateY(20px);
 }
 
@@ -542,4 +547,88 @@ body[data-theme="bw"] {
         width: 2.5rem;
         height: 2.5rem;
     }
+}
+
+/* Promotion Modal Specifics */
+.promotion-modal {
+    max-width: 600px;
+    width: auto;
+}
+
+.promotion-modal h3 {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.promotion-options {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.btn-promotion {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.2s;
+    min-width: 100px;
+}
+
+.btn-promotion:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--primary-color);
+    transform: translateY(-5px);
+}
+
+.piece-preview {
+    width: 50px;
+    height: 50px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.piece-preview.queen {
+    background-image: url('https://upload.wikimedia.org/wikipedia/commons/1/15/Chess_qlt45.svg');
+}
+
+.piece-preview.rook {
+    background-image: url('https://upload.wikimedia.org/wikipedia/commons/7/72/Chess_rlt45.svg');
+}
+
+.piece-preview.bishop {
+    background-image: url('https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_blt45.svg');
+}
+
+.piece-preview.knight {
+    background-image: url('https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg');
+}
+
+.body-turn-black .piece-preview.queen {
+    background-image: url('https://upload.wikimedia.org/wikipedia/commons/4/47/Chess_qdt45.svg');
+}
+
+.body-turn-black .piece-preview.rook {
+    background-image: url('https://upload.wikimedia.org/wikipedia/commons/f/ff/Chess_rdt45.svg');
+}
+
+.body-turn-black .piece-preview.bishop {
+    background-image: url('https://upload.wikimedia.org/wikipedia/commons/9/98/Chess_bdt45.svg');
+}
+
+.body-turn-black .piece-preview.knight {
+    background-image: url('https://upload.wikimedia.org/wikipedia/commons/e/ef/Chess_ndt45.svg');
+}
+
+.btn-promotion span {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-color);
 }

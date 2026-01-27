@@ -223,7 +223,7 @@ class App {
     }
 
     handleMove(moveObj) {
-        // moveObj: {from, to, promotion}
+        const fenBefore = this.game.fen();
 
         // 1. Validate with chess.js
         try {
@@ -234,19 +234,18 @@ class App {
             }
 
             // 2. Check if it matches puzzle solution
-            const expectedMoveLan = this.puzzleMoves[this.moveIndex]; // e.g. "e2g2"
-            const actualMoveLan = move.from + move.to; // e.g. "e2g2" (ignore promotion char for now or handle it)
+            const expectedMoveStr = this.puzzleMoves[this.moveIndex];
 
-            // Handle promotion in LAN if needed (e.g. "a7a8q")
-            const actualMoveLanFull = move.from + move.to + (move.promotion || '');
+            // Use a temporary game to resolve the expected move
+            // This handles SAN, LAN, and provides square-based comparison
+            const tempGame = new window.Chess(fenBefore);
+            const expectedMove = tempGame.move(expectedMoveStr, { sloppy: true });
 
-            // Simple check: does actual match expected?
-            // Note: puzzle solutions usually alternate moves.
-            // Index 0: User move
-            // Index 1: Computer response
-            // Index 2: User move
+            if (expectedMove &&
+                move.from === expectedMove.from &&
+                move.to === expectedMove.to &&
+                (!expectedMove.promotion || move.promotion === expectedMove.promotion)) {
 
-            if (actualMoveLan === expectedMoveLan || actualMoveLanFull === expectedMoveLan) {
                 // Correct move
                 this.board.setHintSquare(null); // Clear hint on correct move
                 this.board.render();
