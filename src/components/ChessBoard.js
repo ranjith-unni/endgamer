@@ -8,6 +8,7 @@ window.ChessBoard = class ChessBoard {
         this.orientation = 'white';
         this.selectedSquare = null;
         this.hintSquare = null;
+        this.showValidMoves = false;
         this.possibleMoves = [];
 
         // Bind methods
@@ -42,6 +43,11 @@ window.ChessBoard = class ChessBoard {
         this.render();
     }
 
+    setShowValidMoves(show) {
+        this.showValidMoves = show;
+        this.render();
+    }
+
     render() {
         this.element.innerHTML = '';
         if (!this.game) return; // Guard clause: wait for game instance
@@ -70,6 +76,13 @@ window.ChessBoard = class ChessBoard {
         // Visual Row 7 = Rank 8 (Index 0)
         // Visual Col 0 = File h (Index 7)
 
+        // Calculate valid moves if enabled and piece selected
+        const validMoveSquares = new Set();
+        if (this.showValidMoves && this.selectedSquare) {
+            const moves = this.game.moves({ square: this.selectedSquare, verbose: true });
+            moves.forEach(m => validMoveSquares.add(m.to));
+        }
+
         for (let r = 0; r < 8; r++) {
             for (let c = 0; c < 8; c++) {
                 const rowIdx = isWhite ? r : 7 - r;
@@ -96,6 +109,11 @@ window.ChessBoard = class ChessBoard {
                 // Highlight hint
                 if (this.hintSquare === squareId) {
                     squareEl.classList.add('hint');
+                }
+
+                // Highlight valid moves
+                if (validMoveSquares.has(squareId)) {
+                    squareEl.classList.add('valid-move');
                 }
 
                 // Highlight last move (optional, TODO)
@@ -188,7 +206,7 @@ window.ChessBoard = class ChessBoard {
             if (result) {
                 // Move successful
                 this.selectedSquare = null;
-                // Render will be called by game update
+                this.render();
             } else {
                 // Invalid move. 
                 // If clicked on another own piece, select it instead

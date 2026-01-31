@@ -157,6 +157,22 @@ main {
     background-color: rgba(255, 255, 0, 0.5) !important;
 }
 
+/* Valid move indicator */
+.square.valid-move::after {
+    content: '';
+    position: absolute;
+    width: 20%;
+    height: 20%;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.square.dark.valid-move::after {
+    background-color: rgba(0, 0, 0, 0.25);
+    /* Slightly darker on dark squares */
+}
+
 #controls {
     display: flex;
     flex-direction: column;
@@ -507,6 +523,63 @@ main {
 .input-action input:focus {
     outline: none;
     border-color: var(--primary-color);
+}
+
+
+/* Toggle Switch */
+.option-row {
+    margin-bottom: 1rem;
+}
+
+.settings-group .toggle-switch {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    gap: 0.75rem;
+    /* Reset label defaults if needed */
+    width: fit-content;
+}
+
+.toggle-switch input {
+    display: none;
+}
+
+.toggle-slider {
+    position: relative;
+    width: 3rem;
+    height: 1.5rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 1.5rem;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s;
+}
+
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: calc(1.5rem - 6px);
+    height: calc(1.5rem - 6px);
+    background-color: var(--secondary-color);
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.toggle-switch input:checked+.toggle-slider {
+    background-color: rgba(56, 189, 248, 0.2);
+    border-color: var(--primary-color);
+}
+
+.toggle-switch input:checked+.toggle-slider::before {
+    transform: translateX(1.5rem);
+    background-color: var(--primary-color);
+}
+
+.toggle-label {
+    font-size: 1rem;
+    color: var(--text-color);
 }
 
 .settings-modal hr {

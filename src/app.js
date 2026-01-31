@@ -16,6 +16,8 @@ class App {
         this.score = this.loadScore();
         this.sessionSolvedPuzzles = new Set(); // Track puzzles solved in this session
         this.currentTheme = localStorage.getItem('endgamer_theme') || 'classic';
+        this.showValidMoves = localStorage.getItem('endgamer_show_valid') === 'true'; // Default false
+        this.board.setShowValidMoves(this.showValidMoves);
         this.applyTheme(this.currentTheme);
 
         this.init();
@@ -99,6 +101,13 @@ class App {
             }
         });
 
+        // Show Valid Moves Checkbox
+        document.getElementById('check-show-valid-moves').addEventListener('change', (e) => {
+            this.showValidMoves = e.target.checked;
+            localStorage.setItem('endgamer_show_valid', this.showValidMoves);
+            this.board.setShowValidMoves(this.showValidMoves);
+        });
+
         // Initial theme UI state
         document.querySelectorAll('.btn-theme').forEach(btn => {
             if (btn.dataset.theme === this.currentTheme) {
@@ -142,6 +151,8 @@ class App {
             if (this.currentPuzzle) {
                 document.getElementById('input-puzzle-number').value = this.currentPuzzle.id;
             }
+            // Sync checkbox
+            document.getElementById('check-show-valid-moves').checked = this.showValidMoves;
         } else {
             overlay.classList.add('hidden');
         }
