@@ -9,6 +9,7 @@ window.ChessBoard = class ChessBoard {
         this.selectedSquare = null;
         this.hintSquare = null;
         this.showValidMoves = false;
+        this.showCoordinates = false;
         this.possibleMoves = [];
 
         // Bind methods
@@ -45,6 +46,11 @@ window.ChessBoard = class ChessBoard {
 
     setShowValidMoves(show) {
         this.showValidMoves = show;
+        this.render();
+    }
+
+    setShowCoordinates(show) {
+        this.showCoordinates = show;
         this.render();
     }
 
@@ -130,6 +136,31 @@ window.ChessBoard = class ChessBoard {
 
                 // Add click listener
                 squareEl.addEventListener('click', () => this.handleSquareClick(squareId));
+
+                // Add coordinates if enabled
+                if (this.showCoordinates) {
+                    // Rank numbers (1-8) on the Right side
+                    // If white orientation, right side is file 'h'.
+                    // If black orientation, right side is file 'a'.
+                    const rightMostFile = isWhite ? 7 : 0; // Index 7 (h) or 0 (a)
+                    if (colIdx === rightMostFile) {
+                        const rankLabel = document.createElement('div');
+                        rankLabel.className = 'coordinate-rank';
+                        rankLabel.textContent = rank; // 1-8
+                        squareEl.appendChild(rankLabel);
+                    }
+
+                    // File letters (a-h) on the Bottom side
+                    // If white orientation, bottom row is rank 1 (rowIdx 7).
+                    // If black orientation, bottom row is rank 8 (rowIdx 0).
+                    const bottomRow = isWhite ? 7 : 0; // Index 7 or 0
+                    if (rowIdx === bottomRow) {
+                        const fileLabel = document.createElement('div');
+                        fileLabel.className = 'coordinate-file';
+                        fileLabel.textContent = file; // a-h
+                        squareEl.appendChild(fileLabel);
+                    }
+                }
 
                 this.element.appendChild(squareEl);
             }

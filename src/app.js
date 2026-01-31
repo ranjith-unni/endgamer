@@ -17,7 +17,9 @@ class App {
         this.sessionSolvedPuzzles = new Set(); // Track puzzles solved in this session
         this.currentTheme = localStorage.getItem('endgamer_theme') || 'classic';
         this.showValidMoves = localStorage.getItem('endgamer_show_valid') === 'true'; // Default false
+        this.showCoordinates = localStorage.getItem('endgamer_show_coords') === 'true'; // Default false
         this.board.setShowValidMoves(this.showValidMoves);
+        this.board.setShowCoordinates(this.showCoordinates);
         this.applyTheme(this.currentTheme);
 
         this.init();
@@ -108,6 +110,13 @@ class App {
             this.board.setShowValidMoves(this.showValidMoves);
         });
 
+        // Show Coordinates Checkbox
+        document.getElementById('check-show-coordinates').addEventListener('change', (e) => {
+            this.showCoordinates = e.target.checked;
+            localStorage.setItem('endgamer_show_coords', this.showCoordinates);
+            this.board.setShowCoordinates(this.showCoordinates);
+        });
+
         // Initial theme UI state
         document.querySelectorAll('.btn-theme').forEach(btn => {
             if (btn.dataset.theme === this.currentTheme) {
@@ -151,8 +160,9 @@ class App {
             if (this.currentPuzzle) {
                 document.getElementById('input-puzzle-number').value = this.currentPuzzle.id;
             }
-            // Sync checkbox
+            // Sync checkboxes
             document.getElementById('check-show-valid-moves').checked = this.showValidMoves;
+            document.getElementById('check-show-coordinates').checked = this.showCoordinates;
         } else {
             overlay.classList.add('hidden');
         }

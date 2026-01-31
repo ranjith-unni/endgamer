@@ -705,3 +705,36 @@ body[data-theme="bw"] {
     font-weight: 600;
     color: var(--text-color);
 }
+/* Coordinates */
+.coordinate-rank {
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0.7;
+}
+
+.coordinate-file {
+    position: absolute;
+    bottom: 2px;
+    right: 4px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0.7;
+}
+
+/* Ensure text color contrasts with square color */
+.square.light .coordinate-rank,
+.square.light .coordinate-file {
+    color: var(--board-dark); /* Use dark color on light square */
+}
+
+.square.dark .coordinate-rank,
+.square.dark .coordinate-file {
+    color: var(--board-light); /* Use light color on dark square */
+}
