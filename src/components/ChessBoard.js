@@ -175,6 +175,15 @@ window.ChessBoard = class ChessBoard {
                 return;
             }
 
+            // If clicking another piece of our playing color, switch selection to that piece
+            // This prevents "Illegal Move" errors when just trying to change selection
+            const targetPiece = this.game.get(square);
+            if (targetPiece && targetPiece.color === this.game.turn()) {
+                this.selectedSquare = square;
+                this.render();
+                return;
+            }
+
             // Check if it's a promotion move
             const piece = this.game.get(this.selectedSquare);
             const isPawn = piece && piece.type === 'p';
