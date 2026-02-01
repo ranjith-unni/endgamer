@@ -2,7 +2,7 @@
 
 EndGamer is a premium web-based chess endgame puzzle trainer designed to help players sharpen their tactical skills in the final stages of the game.
 
-Now live at  https://ranjith-unni.github.io/endgamer/ !
+Play live at  https://ranjith-unni.github.io/endgamer/ !
 
 ## Features
 
@@ -14,10 +14,17 @@ Now live at  https://ranjith-unni.github.io/endgamer/ !
 - **Interactive Board**: Fluid drag-and-drop piece movement with legal move validation and visual highlights.
 - **Intelligent Hint System**: Assistance that identifies the critical piece to move when you're stuck.
 - **Progress Tracking**: Automatic score tracking and hint usage saved to your browser's local storage.
+- **Mobile Experience (Beta)**: A dedicated React Native application for training on the go, featuring native gestures and responsive design.
 
-## Getting Started
-
+### Web
 Simply open `index.html` in any modern web browser to start your training session.
+
+### Mobile
+The mobile version is powered by **Expo**. To run it locally:
+1. Navigate to the mobile directory: `cd mobile`
+2. Install dependencies: `npm install`
+3. Start the development server: `npx expo start`
+4. Scan the QR code with the **Expo Go** app on your Android/iOS device.
 
 ## Maintenance and Extension
 
@@ -52,6 +59,7 @@ The project uses **GitHub Actions** to automatically run validation tests on eve
 
 ## Technologies
 
-- **Frontend**: HTML5, high-performance CSS3, Vanilla JavaScript.
+- **Mobile Framework**: React Native with [Expo](https://expo.dev/) for cross-platform development.
 - **Chess Engine Logic**: [Chess.js](https://github.com/jhlywa/chess.js) for precise move validation and FEN handling.
+- **Visuals**: [React Native SVG](https://github.com/software-mansion/react-native-svg) for high-quality, scalable chess piece rendering.
 - **Data Architecture**: Optimized JSON-based puzzle storage for fast loading and offline access.
