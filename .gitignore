@@ -1,3 +1,7 @@
+# dependencies
+node_modules/
+mobile/node_modules/
+
 # Local environment files
 .DS_Store
 Thumbs.db
