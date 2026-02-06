@@ -30,6 +30,11 @@ class PuzzleManager {
         console.log('PuzzleManager initialized', this.puzzles.length, 'puzzles');
     }
 
+    getPuzzleById(id) {
+        const puzzleId = parseInt(id);
+        return this.puzzles.find(p => p.id === puzzleId) || null;
+    }
+
     async loadProgress() {
         try {
             const stored = await AsyncStorage.getItem(STORAGE_KEY);

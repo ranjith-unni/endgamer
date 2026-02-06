@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Alert, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import NativeChessBoard from './NativeChessBoard'; // Changed
 import { Chess } from 'chess.js';
@@ -15,6 +15,7 @@ export default function GameScreen({ difficulty, onBack }) {
     const [hintSquare, setHintSquare] = useState(null);
     const [stats, setStats] = useState({ totalSolved: 0, hintsUsed: 0 });
     const [boardKey, setBoardKey] = useState(0);
+    const [jumpId, setJumpId] = useState('');
 
     useEffect(() => {
         loadNextPuzzle();
@@ -43,6 +44,25 @@ export default function GameScreen({ difficulty, onBack }) {
         } else {
             setPuzzle(null);
             Alert.alert('Congratulations!', `You have solved all ${difficulty} puzzles!`);
+        }
+        setLoading(false);
+    };
+
+    const jumpToPuzzle = async () => {
+        if (!jumpId) return;
+        setLoading(true);
+        setFeedback('');
+        setHintSquare(null);
+        setBoardKey(k => k + 1);
+
+        await PuzzleManager.init();
+        const p = PuzzleManager.getPuzzleById(jumpId);
+        if (p) {
+            setPuzzle(p);
+            setJumpId('');
+        } else {
+            setFeedback('Puzzle ID not found');
+            setTimeout(() => setFeedback(''), 2000);
         }
         setLoading(false);
     };
@@ -168,6 +188,20 @@ export default function GameScreen({ difficulty, onBack }) {
                     >
                         <Text style={styles.skipText}>Skip Puzzle</Text>
                     </TouchableOpacity>
+
+                    <View style={styles.jumpContainer}>
+                        <TextInput
+                            style={styles.jumpInput}
+                            placeholder="Jump to ID..."
+                            placeholderTextColor="#666"
+                            keyboardType="numeric"
+                            value={jumpId}
+                            onChangeText={setJumpId}
+                        />
+                        <TouchableOpacity style={styles.jumpBtn} onPress={jumpToPuzzle}>
+                            <Text style={styles.jumpBtnText}>Go</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </SafeAreaView >
         </GestureHandlerRootView >
@@ -272,6 +306,31 @@ const styles = StyleSheet.create({
     skipText: {
         color: '#888',
         fontSize: 14,
+    },
+    jumpContainer: {
+        flexDirection: 'row',
+        marginTop: 20,
+        alignItems: 'center',
+        gap: 10,
+    },
+    jumpInput: {
+        backgroundColor: '#333',
+        color: '#fff',
+        paddingHorizontal: 15,
+        paddingVertical: 8,
+        borderRadius: 8,
+        width: 120,
+        fontSize: 14,
+    },
+    jumpBtn: {
+        backgroundColor: '#444',
+        paddingHorizontal: 15,
+        paddingVertical: 8,
+        borderRadius: 8,
+    },
+    jumpBtnText: {
+        color: '#fff',
+        fontWeight: 'bold',
     }
 });
 
