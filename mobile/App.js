@@ -228,8 +228,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   splashImage: {
-    width: 200,
-    height: 200,
+    width: 400,
+    height: 400,
   },
   content: {
     width: '100%',
