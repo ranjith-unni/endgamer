@@ -2,18 +2,44 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as SplashScreen from 'expo-splash-screen';
 import GameScreen from './src/components/GameScreen';
 import PuzzleManager from './src/utils/PuzzleManager';
+
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('home'); // 'home', 'game'
   const [difficulty, setDifficulty] = useState('easy');
 
   const [stats, setStats] = useState({ totalPoints: 0, totalSolved: 0, hintsUsed: 0 });
+  const [appIsReady, setAppIsReady] = useState(false);
 
   useEffect(() => {
-    PuzzleManager.init().then(loadStats).catch(console.error);
+    async function prepare() {
+      try {
+        // Pre-load fonts, make any API calls you need to do here
+        await PuzzleManager.init();
+        loadStats();
+        // Artificially delay for at least 2 seconds
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        // Tell the application to render
+        setAppIsReady(true);
+      }
+    }
+
+    prepare();
   }, []);
+
+  useEffect(() => {
+    if (appIsReady) {
+      SplashScreen.hideAsync();
+    }
+  }, [appIsReady]);
 
   useEffect(() => {
     if (currentScreen === 'home') {
@@ -42,6 +68,10 @@ export default function App() {
       // Alert.alert('Reset', 'Progress has been reset.');
     });
   };
+
+  if (!appIsReady) {
+    return null; // Keep native splash screen or show nothing while waiting
+  }
 
   if (currentScreen === 'game') {
     return (
