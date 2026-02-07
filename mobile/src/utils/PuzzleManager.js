@@ -9,6 +9,7 @@ const INITIAL_STATS = {
     solvedPuzzles: [], // Array of IDs
     totalPoints: 0,
     hintsUsed: 0,
+    successDelay: 1.5, // Seconds to wait after success
 };
 
 class PuzzleManager {
@@ -99,8 +100,14 @@ class PuzzleManager {
         return {
             totalSolved: this.stats.solvedPuzzles.length,
             totalUnsolved: this.puzzles.length - this.stats.solvedPuzzles.length,
-            hintsUsed: this.stats.hintsUsed
+            hintsUsed: this.stats.hintsUsed,
+            successDelay: this.stats.successDelay || 1.5
         };
+    }
+
+    async setSuccessDelay(seconds) {
+        this.stats.successDelay = parseFloat(seconds);
+        await this.saveProgress();
     }
 }
 
