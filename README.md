@@ -14,17 +14,24 @@ Play live at  https://ranjith-unni.github.io/endgamer/ !
 - **Interactive Board**: Fluid drag-and-drop piece movement with legal move validation and visual highlights.
 - **Intelligent Hint System**: Assistance that identifies the critical piece to move when you're stuck.
 - **Progress Tracking**: Automatic score tracking and hint usage saved to your browser's local storage.
-- **Mobile Experience (Beta)**: A dedicated React Native application for training on the go, featuring native gestures and responsive design.
+- **Mobile Experience**: A dedicated React Native application for training on the go, featuring native gestures and responsive design.
+- **Pawn Promotion Support**: Fully implemented pawn promotion logic (Queen, Rook, Bishop, Knight) with interactive piece selection.
 
-### Web
+### Web (Vanilla JS)
 Simply open `index.html` in any modern web browser to start your training session.
 
-### Mobile
+### Mobile (React Native / Expo)
 The mobile version is powered by **Expo**. To run it locally:
 1. Navigate to the mobile directory: `cd mobile`
 2. Install dependencies: `npm install`
-3. Start the development server: `npx expo start`
-4. Scan the QR code with the **Expo Go** app on your Android/iOS device.
+3. Start the development server: `npm start`
+4. Scan the QR code with the **Expo Go** app on your Android/iOS device, or press `w` to open in the browser.
+
+## Developer & Testing Tools
+
+To accelerate development and testing, the mobile app includes:
+- **Jump to ID**: Directly navigate to any puzzle by entering its ID in the input field at the bottom of the Game Screen. Great for testing specific scenarios like pawn promotions (e.g., Puzzle #20).
+- **Web Preview**: Run the mobile app in a browser environment (`npm run web`) for rapid UI iteration and agentic testing.
 
 ## Maintenance and Extension
 
