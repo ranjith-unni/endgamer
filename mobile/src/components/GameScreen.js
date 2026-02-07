@@ -31,7 +31,6 @@ export default function GameScreen({ difficulty, onBack }) {
     const updateStats = async () => {
         const s = PuzzleManager.getStats();
         setStats(s);
-        setSuccessDelay(s.successDelay.toString());
     };
 
     const loadNextPuzzle = async () => {
@@ -97,7 +96,7 @@ export default function GameScreen({ difficulty, onBack }) {
             setFeedback('Correct! Mate!');
             PuzzleManager.markAsSolved(puzzle.id).then(updateStats);
             // Allow user to see the move and the success message for a moment
-            const delay = parseFloat(successDelay) * 1000 || 1500;
+            const delay = PuzzleManager.getStats().successDelay * 1000;
             setTimeout(() => {
                 loadNextPuzzle();
             }, delay);
