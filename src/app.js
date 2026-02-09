@@ -129,7 +129,7 @@ class App {
         // Reset button (updated listener since it moved)
         document.getElementById('btn-reset').addEventListener('click', () => {
             this.toggleSettings(false); // Close settings first
-            this.showCustomConfirm(
+            this.showModal(
                 "Reset Progress?",
                 "This will clear all your solved puzzles and statistics. Are you sure you want to start over?",
                 () => {
@@ -147,7 +147,9 @@ class App {
                     } else {
                         this.showFeedback("Progress reset! Current puzzle kept.", "info");
                     }
-                }
+                },
+                "Confirm",
+                "Cancel"
             );
         });
     }
@@ -183,7 +185,7 @@ class App {
         }
     }
 
-    showCustomConfirm(title, message, onConfirm) {
+    showModal(title, message, onConfirm, confirmText = "Confirm", cancelText = "Cancel", singleButton = false) {
         const overlay = document.getElementById('modal-overlay');
         const titleEl = document.getElementById('modal-title');
         const messageEl = document.getElementById('modal-message');
@@ -192,18 +194,29 @@ class App {
 
         titleEl.textContent = title;
         messageEl.textContent = message;
+        confirmBtn.textContent = confirmText;
+        cancelBtn.textContent = cancelText;
+
+        if (singleButton) {
+            cancelBtn.style.display = 'none';
+        } else {
+            cancelBtn.style.display = 'inline-block'; // or block/flex depending on css, inline-block is safe
+        }
+
         overlay.classList.remove('hidden');
 
         const cleanup = () => {
             overlay.classList.add('hidden');
             cancelBtn.removeEventListener('click', onCancel);
             confirmBtn.removeEventListener('click', onConfirmInternal);
+            // Reset style
+            cancelBtn.style.display = '';
         };
 
         const onCancel = () => cleanup();
         const onConfirmInternal = () => {
             cleanup();
-            onConfirm();
+            if (onConfirm) onConfirm();
         };
 
         cancelBtn.addEventListener('click', onCancel);
@@ -213,10 +226,52 @@ class App {
     startNewPuzzle() {
         const puzzle = this.puzzleManager.getNextPuzzle();
         if (!puzzle) {
-            alert('No more puzzles in this difficulty!');
+            this.handleLevelComplete();
             return;
         }
         this.setupPuzzle(puzzle);
+    }
+
+    handleLevelComplete() {
+        const currentDiff = this.puzzleManager.currentDifficulty;
+        if (currentDiff === 'easy') {
+            this.showModal(
+                "Level Complete!",
+                "You've solved all Easy puzzles! You are being promoted to the Medium level of challenge. Are you ready?",
+                () => {
+                    this.advanceLevel('medium');
+                },
+                "Let's Go!",
+                "",
+                true
+            );
+        } else if (currentDiff === 'medium') {
+            this.showModal(
+                "Level Complete!",
+                "You've solved all Medium puzzles! You are being promoted to the Hard level of challenge. Are you ready?",
+                () => {
+                    this.advanceLevel('hard');
+                },
+                "Let's Go!",
+                "",
+                true
+            );
+        } else {
+            this.showModal("Game Complete!", "You've solved all puzzles! Congratulations on mastering the endgame!", () => {
+                // Do nothing or reset
+            }, "Awesome!", "", true);
+        }
+    }
+
+    advanceLevel(level) {
+        // UI update for buttons
+        document.querySelectorAll('.btn-difficulty').forEach(b => {
+            b.classList.remove('active');
+            if (b.dataset.level === level) b.classList.add('active');
+        });
+
+        this.puzzleManager.setDifficulty(level);
+        this.startNewPuzzle();
     }
 
     setupPuzzle(puzzle) {

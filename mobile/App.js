@@ -83,7 +83,7 @@ export default function App() {
   if (currentScreen === 'game') {
     return (
       <SafeAreaProvider>
-        <GameScreen difficulty={difficulty} onBack={goHome} />
+        <GameScreen difficulty={difficulty} onBack={goHome} onChangeDifficulty={setDifficulty} />
       </SafeAreaProvider>
     );
   }

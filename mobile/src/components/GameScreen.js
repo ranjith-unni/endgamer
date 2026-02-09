@@ -7,7 +7,7 @@ import { Chess } from 'chess.js';
 import PuzzleManager from '../utils/PuzzleManager';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-export default function GameScreen({ difficulty, onBack }) {
+export default function GameScreen({ difficulty, onBack, onChangeDifficulty }) {
     const [puzzle, setPuzzle] = useState(null);
     const [chess, setChess] = useState(new Chess());
     const [feedback, setFeedback] = useState('');
@@ -20,6 +20,7 @@ export default function GameScreen({ difficulty, onBack }) {
     const [showSettings, setShowSettings] = useState(false);
     const [showAbout, setShowAbout] = useState(false);
     const [showResetConfirm, setShowResetConfirm] = useState(false);
+    const [showLevelComplete, setShowLevelComplete] = useState(false);
 
     const SETTINGS_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`;
 
@@ -49,7 +50,7 @@ export default function GameScreen({ difficulty, onBack }) {
             setPuzzle(next);
         } else {
             setPuzzle(null);
-            Alert.alert('Congratulations!', `You have solved all ${difficulty} puzzles!`);
+            setShowLevelComplete(true);
         }
         setLoading(false);
     };
@@ -79,6 +80,12 @@ export default function GameScreen({ difficulty, onBack }) {
         loadNextPuzzle();
         setShowResetConfirm(false);
         setShowSettings(false);
+    };
+
+    const handleNextLevel = () => {
+        setShowLevelComplete(false);
+        if (difficulty === 'easy') onChangeDifficulty('medium');
+        else if (difficulty === 'medium') onChangeDifficulty('hard');
     };
 
     const onMove = useCallback(({ move }) => {
@@ -345,6 +352,45 @@ export default function GameScreen({ difficulty, onBack }) {
                             </View>
                         </View>
                     </TouchableOpacity>
+                </Modal>
+
+                {/* Level Complete / Promotion Modal */}
+                <Modal
+                    visible={showLevelComplete}
+                    animationType="fade"
+                    transparent={true}
+                    onRequestClose={() => setShowLevelComplete(false)}
+                >
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.modalTitle}>
+                                {difficulty === 'hard' ? "Game Complete!" : "Level Complete!"}
+                            </Text>
+                            <Text style={styles.modalMessage}>
+                                {difficulty === 'hard'
+                                    ? "You have solved all puzzles! Congratulations on mastering the endgame!"
+                                    : `You have solved all ${difficulty} puzzles. You are being promoted to the ${difficulty === 'easy' ? 'Medium' : 'Hard'} level of challenge.`}
+                            </Text>
+
+                            <View style={styles.modalButtons}>
+                                {difficulty !== 'hard' ? (
+                                    <TouchableOpacity
+                                        style={[styles.modalBtn, styles.confirmModalBtn]}
+                                        onPress={handleNextLevel}
+                                    >
+                                        <Text style={styles.confirmBtnText}>Let's Go!</Text>
+                                    </TouchableOpacity>
+                                ) : (
+                                    <TouchableOpacity
+                                        style={[styles.modalBtn, styles.cancelModalBtn]}
+                                        onPress={() => setShowLevelComplete(false)}
+                                    >
+                                        <Text style={styles.cancelBtnText}>Dismiss</Text>
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+                        </View>
+                    </View>
                 </Modal>
             </SafeAreaView >
         </GestureHandlerRootView >
