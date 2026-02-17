@@ -10,6 +10,7 @@ const INITIAL_STATS = {
     totalPoints: 0,
     hintsUsed: 0,
     successDelay: 1.0, // Seconds to wait after success
+    randomSwapEnabled: false,
 };
 
 class PuzzleManager {
@@ -33,7 +34,8 @@ class PuzzleManager {
 
     getPuzzleById(id) {
         const puzzleId = parseInt(id);
-        return this.puzzles.find(p => p.id === puzzleId) || null;
+        const p = this.puzzles.find(p => p.id === puzzleId) || null;
+        return PuzzleManager.normalizeDescription(p);
     }
 
     async loadProgress() {
@@ -83,17 +85,117 @@ class PuzzleManager {
 
     getNextPuzzle() {
         const solvedSet = new Set(this.stats.solvedPuzzles);
+        // Debugging logs
+        /*
+        console.log(`Getting puzzle for difficulty: ${this.currentDifficulty}`);
+        console.log(`Total Puzzles in memory: ${this.puzzles.length}`);
+        */
+
         const unsolved = this.puzzles.filter(p =>
             p.difficulty === this.currentDifficulty &&
             !solvedSet.has(p.id)
         );
 
         if (unsolved.length === 0) {
+            console.log(`No puzzles found for difficulty: ${this.currentDifficulty}`);
+            console.log(`Solved Count: ${solvedSet.size}`);
+            // Check if ALL puzzles of this difficulty are solved
+            const totalForDiff = this.puzzles.filter(p => p.difficulty === this.currentDifficulty).length;
+            console.log(`Total for difficulty: ${totalForDiff}`);
+
             return null;
         }
 
         const randomIndex = Math.floor(Math.random() * unsolved.length);
-        return unsolved[randomIndex];
+        const selected = unsolved[randomIndex];
+        // console.log(`Selected puzzle ID: ${selected.id}`);
+        return PuzzleManager.normalizeDescription(selected);
+    }
+
+    // Instance method to swap colors and pieces
+    swapPuzzle(puzzle) {
+        if (!puzzle) return null;
+
+        const newFen = PuzzleManager.transformFen(puzzle.fen);
+        const newSolution = puzzle.solution.map(move => PuzzleManager.transformMove(move));
+
+        let newDesc = puzzle.description || "";
+        // Normalize "Move" to "move"
+        newDesc = newDesc.replace(/Move/g, "move");
+
+        if (newDesc.includes("White")) {
+            newDesc = newDesc.replace("White", "Black");
+        } else if (newDesc.includes("Black")) {
+            newDesc = newDesc.replace("Black", "White");
+        }
+
+        return {
+            ...puzzle,
+            fen: newFen,
+            solution: newSolution,
+            description: newDesc,
+            isSwapped: !puzzle.isSwapped
+        };
+    }
+
+    static normalizeDescription(puzzle) {
+        if (!puzzle || !puzzle.description) return puzzle;
+        return {
+            ...puzzle,
+            description: puzzle.description.replace(/Move/g, "move")
+        };
+    }
+
+    static transformFen(fen) {
+        const parts = fen.split(' ');
+        const placement = parts[0];
+        const activeColor = parts[1];
+        const castling = parts[2];
+        const enPassant = parts[3];
+        const halfMove = parts[4];
+        const fullMove = parts[5];
+
+        const rows = placement.split('/');
+        const reversedRows = rows.reverse();
+        const transformedRows = reversedRows.map(row => {
+            return row.split('').map(char => {
+                if (/[a-z]/.test(char)) return char.toUpperCase();
+                if (/[A-Z]/.test(char)) return char.toLowerCase();
+                return char;
+            }).join('');
+        });
+        const newPlacement = transformedRows.join('/');
+        const newActiveColor = activeColor === 'w' ? 'b' : 'w';
+
+        let newCastling = '-';
+        if (castling !== '-') {
+            newCastling = castling.split('').map(char => {
+                if (/[a-z]/.test(char)) return char.toUpperCase();
+                return char.toLowerCase();
+            }).join('');
+        }
+
+        let newEnPassant = '-';
+        if (enPassant !== '-') {
+            const file = enPassant[0];
+            const rank = parseInt(enPassant[1]);
+            const newRank = 9 - rank;
+            newEnPassant = file + newRank;
+        }
+
+        return `${newPlacement} ${newActiveColor} ${newCastling} ${newEnPassant} ${halfMove} ${fullMove}`;
+    }
+
+    static transformMove(move) {
+        const transformSquare = (sq) => {
+            const file = sq[0];
+            const rank = parseInt(sq[1]);
+            return `${file}${9 - rank}`;
+        };
+        const from = transformSquare(move.substring(0, 2));
+        const to = transformSquare(move.substring(2, 4));
+        const promotion = move.length > 4 ? move.substring(4) : "";
+        return from + to + promotion;
     }
 
     getStats() {
@@ -101,13 +203,23 @@ class PuzzleManager {
             totalSolved: this.stats.solvedPuzzles.length,
             totalUnsolved: this.puzzles.length - this.stats.solvedPuzzles.length,
             hintsUsed: this.stats.hintsUsed,
-            successDelay: this.stats.successDelay || 1.0
+            successDelay: this.stats.successDelay || 1.0,
+            randomSwapEnabled: !!this.stats.randomSwapEnabled
         };
     }
 
     async setSuccessDelay(seconds) {
         this.stats.successDelay = parseFloat(seconds);
         await this.saveProgress();
+    }
+
+    async setRandomSwapEnabled(enabled) {
+        this.stats.randomSwapEnabled = !!enabled;
+        await this.saveProgress();
+    }
+
+    isRandomSwapEnabled() {
+        return !!this.stats.randomSwapEnabled;
     }
 }
 

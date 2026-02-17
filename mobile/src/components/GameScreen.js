@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, Alert, TouchableOpacity, ActivityIndicator, TextInput, Modal, Pressable, Image } from 'react-native';
+import { View, Text, StyleSheet, Alert, TouchableOpacity, ActivityIndicator, TextInput, Modal, Pressable, Image, Switch } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import NativeChessBoard from './NativeChessBoard'; // Changed
@@ -21,6 +21,8 @@ export default function GameScreen({ difficulty, onBack, onChangeDifficulty }) {
     const [showAbout, setShowAbout] = useState(false);
     const [showResetConfirm, setShowResetConfirm] = useState(false);
     const [showLevelComplete, setShowLevelComplete] = useState(false);
+    const [randomSwap, setRandomSwap] = useState(PuzzleManager.isRandomSwapEnabled());
+    const [showValidMoves, setShowValidMoves] = useState(true);
 
     const SETTINGS_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`;
 
@@ -35,24 +37,36 @@ export default function GameScreen({ difficulty, onBack, onChangeDifficulty }) {
     };
 
     const loadNextPuzzle = async () => {
-        setLoading(true);
-        setFeedback('');
-        setHintSquare(null); // Reset hint
-        setBoardKey(k => k + 1); // Reset board
-        PuzzleManager.setDifficulty(difficulty);
+        try {
+            setLoading(true);
+            setFeedback('');
+            setHintSquare(null); // Reset hint
+            setBoardKey(k => k + 1); // Reset board
+            PuzzleManager.setDifficulty(difficulty);
 
-        // Ensure manager is initialized
-        await PuzzleManager.init();
-        updateStats();
+            // Ensure manager is initialized
+            await PuzzleManager.init();
+            updateStats();
 
-        const next = PuzzleManager.getNextPuzzle();
-        if (next) {
-            setPuzzle(next);
-        } else {
-            setPuzzle(null);
-            setShowLevelComplete(true);
+            let next = PuzzleManager.getNextPuzzle();
+
+            // Random Swap Logic
+            if (next && randomSwap && Math.random() > 0.5) {
+                next = PuzzleManager.swapPuzzle(next);
+            }
+
+            if (next) {
+                setPuzzle(next);
+            } else {
+                setPuzzle(null);
+                setShowLevelComplete(true);
+            }
+        } catch (error) {
+            console.error('Error loading next puzzle:', error);
+            Alert.alert('Error', 'Failed to load puzzle. Please try again.');
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     const jumpToPuzzle = async () => {
@@ -63,8 +77,11 @@ export default function GameScreen({ difficulty, onBack, onChangeDifficulty }) {
         setBoardKey(k => k + 1);
 
         await PuzzleManager.init();
-        const p = PuzzleManager.getPuzzleById(jumpId);
+        let p = PuzzleManager.getPuzzleById(jumpId);
         if (p) {
+            if (randomSwap && Math.random() > 0.5) {
+                p = PuzzleManager.swapPuzzle(p);
+            }
             setPuzzle(p);
             setJumpId('');
             setShowSettings(false);
@@ -101,6 +118,8 @@ export default function GameScreen({ difficulty, onBack, onChangeDifficulty }) {
 
         if (algebraicMove === expectedMove || simpleMove === expectedMove) {
             setFeedback('Correct! Mate!');
+            // Only mark as solved if using original ID (assuming solved set uses original IDs)
+            // But swapPuzzle keeps original ID, so this is fine.
             PuzzleManager.markAsSolved(puzzle.id).then(updateStats);
             // Allow user to see the move and the success message for a moment
             const delay = PuzzleManager.getStats().successDelay * 1000;
@@ -136,6 +155,15 @@ export default function GameScreen({ difficulty, onBack, onChangeDifficulty }) {
         );
     }
 
+    // Determine orientation based on puzzle active color (calculated from FEN or logic)
+    // Actually safe way: check turn.
+    // If we swapped, PuzzleManager.swapPuzzle updated the FEN active color.
+    // A fresh chess instance from that fen will show correct turn.
+    // The visual orientation should match the side to move.
+
+    // User Update: Always keep orientation 'white' so Black moves downward.
+    const orientation = 'white';
+
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <SafeAreaView style={styles.container}>
@@ -164,8 +192,21 @@ export default function GameScreen({ difficulty, onBack, onChangeDifficulty }) {
                         onMove={onMove}
                         highlightSquare={hintSquare}
                         solution={puzzle.solution ? puzzle.solution[0] : null}
+                        orientation={orientation}
+                        showValidMoves={showValidMoves}
                     />
-                    <Text style={styles.description}>{puzzle.description}</Text>
+                    <Text style={styles.description}>
+                        {(() => {
+                            const desc = puzzle.description || "";
+                            const parts = desc.split(/(White|Black)/g);
+                            return parts.map((part, index) => {
+                                if (part === 'White' || part === 'Black') {
+                                    return <Text key={index} style={{ fontWeight: 'bold', color: '#fff' }}>{part}</Text>;
+                                }
+                                return <Text key={index}>{part}</Text>;
+                            });
+                        })()}
+                    </Text>
                 </View>
 
                 <View style={styles.controls}>
@@ -244,6 +285,35 @@ export default function GameScreen({ difficulty, onBack, onChangeDifficulty }) {
                                         <Text style={styles.jumpBtnText}>Go</Text>
                                     </TouchableOpacity>
                                 </View>
+                            </View>
+
+                            <View style={styles.separator} />
+
+                            <View style={styles.settingsRow}>
+                                <Text style={[styles.settingsLabel, { marginBottom: 0, color: '#fff' }]}>Random Role Swap</Text>
+                                <Switch
+                                    trackColor={{ false: "#767577", true: "#4ade80" }}
+                                    thumbColor={randomSwap ? "#fff" : "#f4f3f4"}
+                                    ios_backgroundColor="#3e3e3e"
+                                    onValueChange={(newValue) => {
+                                        setRandomSwap(newValue);
+                                        PuzzleManager.setRandomSwapEnabled(newValue);
+                                    }}
+                                    value={randomSwap}
+                                />
+                            </View>
+
+                            <View style={styles.separator} />
+
+                            <View style={styles.settingsRow}>
+                                <Text style={[styles.settingsLabel, { marginBottom: 0, color: '#fff' }]}>Show Valid Moves</Text>
+                                <Switch
+                                    trackColor={{ false: "#767577", true: "#4ade80" }}
+                                    thumbColor={showValidMoves ? "#fff" : "#f4f3f4"}
+                                    ios_backgroundColor="#3e3e3e"
+                                    onValueChange={setShowValidMoves}
+                                    value={showValidMoves}
+                                />
                             </View>
 
                             <View style={styles.separator} />
@@ -551,6 +621,13 @@ const styles = StyleSheet.create({
     settingsGroup: {
         width: '100%',
         marginBottom: 20,
+    },
+    settingsRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '100%',
+        paddingVertical: 8,
     },
     settingsLabel: {
         color: '#aaa',

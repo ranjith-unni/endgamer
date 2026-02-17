@@ -18,6 +18,7 @@ class App {
         this.currentTheme = localStorage.getItem('endgamer_theme') || 'classic';
         this.showValidMoves = localStorage.getItem('endgamer_show_valid') === 'true'; // Default false
         this.showCoordinates = localStorage.getItem('endgamer_show_coords') === 'true'; // Default false
+        this.randomSwapEnabled = localStorage.getItem('endgamer_random_swap') === 'true'; // Default false
         this.board.setShowValidMoves(this.showValidMoves);
         this.board.setShowCoordinates(this.showCoordinates);
         this.applyTheme(this.currentTheme);
@@ -117,6 +118,12 @@ class App {
             this.board.setShowCoordinates(this.showCoordinates);
         });
 
+        // Random Swap Checkbox
+        document.getElementById('check-random-swap').addEventListener('change', (e) => {
+            this.randomSwapEnabled = e.target.checked;
+            localStorage.setItem('endgamer_random_swap', this.randomSwapEnabled);
+        });
+
         // Initial theme UI state
         document.querySelectorAll('.btn-theme').forEach(btn => {
             if (btn.dataset.theme === this.currentTheme) {
@@ -165,6 +172,7 @@ class App {
             // Sync checkboxes
             document.getElementById('check-show-valid-moves').checked = this.showValidMoves;
             document.getElementById('check-show-coordinates').checked = this.showCoordinates;
+            document.getElementById('check-random-swap').checked = this.randomSwapEnabled;
         } else {
             overlay.classList.add('hidden');
         }
@@ -177,8 +185,14 @@ class App {
     goToPuzzle(id) {
         const puzzle = this.puzzleManager.getPuzzleById(id);
         if (puzzle) {
-            this.currentPuzzle = puzzle;
-            this.setupPuzzle(puzzle);
+            // Respect swap setting even for direct navigation? 
+            // Maybe yes, for consistency.
+            let puzzleToLoad = puzzle;
+            if (this.randomSwapEnabled && Math.random() > 0.5) {
+                puzzleToLoad = window.PuzzleManager.swapPuzzle(puzzle);
+            }
+            this.currentPuzzle = puzzleToLoad;
+            this.setupPuzzle(puzzleToLoad);
             this.showFeedback(`Navigated to puzzle #${id}`, "info");
         } else {
             this.showFeedback(`Puzzle #${id} not found!`, "error");
@@ -224,11 +238,17 @@ class App {
     }
 
     startNewPuzzle() {
-        const puzzle = this.puzzleManager.getNextPuzzle();
+        let puzzle = this.puzzleManager.getNextPuzzle();
         if (!puzzle) {
             this.handleLevelComplete();
             return;
         }
+
+        // Apply Random Swap
+        if (this.randomSwapEnabled && Math.random() > 0.5) {
+            puzzle = window.PuzzleManager.swapPuzzle(puzzle);
+        }
+
         this.setupPuzzle(puzzle);
     }
 
@@ -284,7 +304,7 @@ class App {
         // Determine orientation
         const turn = this.game.turn(); // 'w' or 'b'
         this.board.setGame(this.game); // Set game first!
-        this.board.setOrientation(turn === 'w' ? 'white' : 'black');
+        this.board.setOrientation('white'); // Always white orientation (User request)
         this.board.setHintSquare(null); // Clear hint on new puzzle
 
         this.updateStatus(puzzle.description);
@@ -423,7 +443,10 @@ class App {
     }
 
     updateStatus(msg) {
-        document.getElementById('instruction').textContent = msg;
+        const highlightedMsg = msg
+            .replace(/White/g, "<strong>White</strong>")
+            .replace(/Black/g, "<strong>Black</strong>");
+        document.getElementById('instruction').innerHTML = highlightedMsg;
     }
 
     showFeedback(msg, type = "") {

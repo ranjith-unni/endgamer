@@ -8,7 +8,7 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 const BOARD_SIZE = Math.min(SCREEN_WIDTH - 20, 340); // Max width 340
 const SQUARE_SIZE = BOARD_SIZE / 8;
 
-export default function NativeChessBoard({ fen, onMove, highlightSquare, solution }) {
+export default function NativeChessBoard({ fen, onMove, highlightSquare, solution, orientation = 'white', showValidMoves = true }) {
     // We keep a local chess instance for legal move generation and piece placement
     // Note: 'fen' prop updates trigger a state reset
     const [game, setGame] = useState(new Chess(fen));
@@ -58,8 +58,9 @@ export default function NativeChessBoard({ fen, onMove, highlightSquare, solutio
     const handleSquarePress = (row, col) => {
         if (promotionSquare) return; // Ignore clicks if promoting
 
-        const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-        const ranks = ['8', '7', '6', '5', '4', '3', '2', '1'];
+        const isWhite = orientation === 'white';
+        const files = isWhite ? ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'] : ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a'];
+        const ranks = isWhite ? ['8', '7', '6', '5', '4', '3', '2', '1'] : ['1', '2', '3', '4', '5', '6', '7', '8'];
         const square = files[col] + ranks[row]; // e.g., 'e4'
 
         // If we have a selected square, try to move
@@ -139,12 +140,19 @@ export default function NativeChessBoard({ fen, onMove, highlightSquare, solutio
         const isDark = (row + col) % 2 === 1;
         const color = isDark ? '#b58863' : '#f0d9b5';
 
-        // Piece rendering
-        // board() returns 8x8 array. row 0 is rank 8.
-        const squareData = board[row] && board[row][col];
+        const isWhite = orientation === 'white';
+        // Map visual row/col to board data indices
+        // Board data is always rank 8 (index 0) to rank 1 (index 7), file a (0) to h (7)
+        // If flipped:
+        // Visual Row 0 (Top) -> Rank 1 (Index 7)
+        // Visual Col 0 (Left) -> File h (Index 7)
+        const dataRow = isWhite ? row : 7 - row;
+        const dataCol = isWhite ? col : 7 - col;
 
-        const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-        const ranks = ['8', '7', '6', '5', '4', '3', '2', '1'];
+        const squareData = board[dataRow] && board[dataRow][dataCol];
+
+        const files = isWhite ? ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'] : ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a'];
+        const ranks = isWhite ? ['8', '7', '6', '5', '4', '3', '2', '1'] : ['1', '2', '3', '4', '5', '6', '7', '8'];
         const squareId = files[col] + ranks[row];
 
         const isSelected = selectedSquare === squareId;
@@ -170,11 +178,11 @@ export default function NativeChessBoard({ fen, onMove, highlightSquare, solutio
                 )}
 
                 {/* Move Hint Dot */}
-                {isPossibleMove && !squareData && (
+                {showValidMoves && isPossibleMove && !squareData && (
                     <View style={styles.moveDot} />
                 )}
                 {/* Capture Hint Ring */}
-                {isPossibleMove && squareData && (
+                {showValidMoves && isPossibleMove && squareData && (
                     <View style={styles.captureRing} />
                 )}
             </TouchableOpacity>
