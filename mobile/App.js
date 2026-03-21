@@ -5,10 +5,11 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import GameScreen from './src/components/GameScreen';
 import PuzzleManager from './src/utils/PuzzleManager';
-import appConfig from './app.json';
+import Constants from 'expo-constants';
 
-const { version } = appConfig.expo;
-const { versionCode, releaseDate } = appConfig.expo.extra;
+const version = Constants.expoConfig?.version || '1.1.0';
+const versionCode = Constants.expoConfig?.android?.versionCode || Constants.expoConfig?.extra?.versionCode || '17';
+const releaseDate = Constants.expoConfig?.extra?.releaseDate || '2026-03-21';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
