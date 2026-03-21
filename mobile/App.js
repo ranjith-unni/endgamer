@@ -221,20 +221,20 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 40,
   },
   splashContainer: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
   },
   splashImage: {
-    width: 400,
-    height: 400,
+    width: '100%',
+    height: '100%',
   },
   content: {
     width: '100%',
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#000000',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1000,
