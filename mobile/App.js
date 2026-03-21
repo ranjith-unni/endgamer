@@ -5,6 +5,10 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import GameScreen from './src/components/GameScreen';
 import PuzzleManager from './src/utils/PuzzleManager';
+import appConfig from './app.json';
+
+const { version } = appConfig.expo;
+const { versionCode, releaseDate } = appConfig.expo.extra;
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -147,7 +151,7 @@ export default function App() {
                 resizeMode="contain"
               />
               <Text style={styles.aboutTitle}>EndGamer</Text>
-              <Text style={styles.aboutVersion}>v1.0.0 (2026)</Text>
+              <Text style={styles.aboutVersion}>v{version} build {versionCode} ({releaseDate})</Text>
 
               <Text style={styles.aboutDescription}>
                 Master the Endgame. Train tactics with select mate-in-N puzzles for chess enthusiasts.
