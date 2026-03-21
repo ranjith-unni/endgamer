@@ -419,7 +419,7 @@ export default function GameScreen({ difficulty, onBack, onChangeDifficulty }) {
                                 <Text style={[styles.featureItem, { textAlign: 'center' }]}>Progress Synchronization</Text>
                             </View>
 
-                            <Text style={styles.authorText}>Developed by WildCraft Labs</Text>
+                            <Text style={styles.authorText}>Developed by WillCraft Labs</Text>
 
                             <TouchableOpacity
                                 style={styles.closeAboutBtn}
