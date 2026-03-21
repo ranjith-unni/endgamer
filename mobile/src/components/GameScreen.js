@@ -9,6 +9,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function GameScreen({ difficulty, onBack, onChangeDifficulty }) {
     const [puzzle, setPuzzle] = useState(null);
+    const [currentMoveIndex, setCurrentMoveIndex] = useState(0);
+    const [currentFen, setCurrentFen] = useState('');
     const [chess, setChess] = useState(new Chess());
     const [feedback, setFeedback] = useState('');
     const [loading, setLoading] = useState(true);
@@ -57,6 +59,8 @@ export default function GameScreen({ difficulty, onBack, onChangeDifficulty }) {
 
             if (next) {
                 setPuzzle(next);
+                setCurrentFen(next.fen);
+                setCurrentMoveIndex(0);
             } else {
                 setPuzzle(null);
                 setShowLevelComplete(true);
@@ -68,6 +72,29 @@ export default function GameScreen({ difficulty, onBack, onChangeDifficulty }) {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (puzzle && currentMoveIndex % 2 === 1 && currentMoveIndex < puzzle.solution.length) {
+            const timer = setTimeout(() => {
+                const game = new Chess(currentFen);
+                const opponentMove = puzzle.solution[currentMoveIndex];
+                const oFrom = opponentMove.substring(0, 2);
+                const oTo = opponentMove.substring(2, 4);
+                const oPromo = opponentMove.length > 4 ? opponentMove.substring(4) : 'q';
+
+                const result = game.move({ from: oFrom, to: oTo, promotion: oPromo });
+                if (result) {
+                    setCurrentFen(game.fen());
+                    setCurrentMoveIndex(prev => prev + 1);
+                    setFeedback('');
+                    setBoardKey(k => k + 1);
+                } else {
+                    console.error('Opponent move failed:', opponentMove);
+                }
+            }, 600);
+            return () => clearTimeout(timer);
+        }
+    }, [currentMoveIndex, puzzle, currentFen]);
 
     const jumpToPuzzle = async () => {
         if (!jumpId) return;
@@ -83,6 +110,8 @@ export default function GameScreen({ difficulty, onBack, onChangeDifficulty }) {
                 p = PuzzleManager.swapPuzzle(p);
             }
             setPuzzle(p);
+            setCurrentFen(p.fen);
+            setCurrentMoveIndex(0);
             setJumpId('');
             setShowSettings(false);
         } else {
@@ -114,18 +143,33 @@ export default function GameScreen({ difficulty, onBack, onChangeDifficulty }) {
         const algebraicMove = from + to + (promotion ? promotion : '');
         const simpleMove = from + to;
 
-        const expectedMove = puzzle.solution[0];
+        const expectedMove = puzzle.solution[currentMoveIndex];
 
         if (algebraicMove === expectedMove || simpleMove === expectedMove) {
-            setFeedback('Correct! Mate!');
-            // Only mark as solved if using original ID (assuming solved set uses original IDs)
-            // But swapPuzzle keeps original ID, so this is fine.
-            PuzzleManager.markAsSolved(puzzle.id).then(updateStats);
-            // Allow user to see the move and the success message for a moment
-            const delay = PuzzleManager.getStats().successDelay * 1000;
-            setTimeout(() => {
-                loadNextPuzzle();
-            }, delay);
+            // Player's move is correct. Update board.
+            const game = new Chess(currentFen);
+            const result = game.move({ from, to, promotion: promotion || 'q' });
+
+            if (result) {
+                const nextFen = game.fen();
+                setCurrentFen(nextFen);
+                setHintSquare(null); // Clear highlight/hint after a move
+                const nextIndex = currentMoveIndex + 1;
+
+                if (nextIndex >= puzzle.solution.length) {
+                    // Puzzle complete!
+                    setFeedback('Correct! Mate!');
+                    PuzzleManager.markAsSolved(puzzle.id).then(updateStats);
+                    const delay = PuzzleManager.getStats().successDelay * 1000;
+                    setTimeout(() => {
+                        loadNextPuzzle();
+                    }, delay);
+                } else {
+                    // Show "Correct" feedback briefly
+                    setFeedback('Correct!');
+                    setCurrentMoveIndex(nextIndex);
+                }
+            }
         } else {
             setFeedback('Incorrect move. Try again.');
             // Delay the reset so the user sees their bad move for a second
@@ -134,7 +178,7 @@ export default function GameScreen({ difficulty, onBack, onChangeDifficulty }) {
                 setBoardKey(k => k + 1); // Force board reset
             }, 1000);
         }
-    }, [puzzle]);
+    }, [puzzle, currentFen, currentMoveIndex]);
 
     if (loading) {
         return (
@@ -188,10 +232,10 @@ export default function GameScreen({ difficulty, onBack, onChangeDifficulty }) {
                     </View>
                     <NativeChessBoard
                         key={boardKey}
-                        fen={puzzle.fen}
+                        fen={currentFen}
                         onMove={onMove}
                         highlightSquare={hintSquare}
-                        solution={puzzle.solution ? puzzle.solution[0] : null}
+                        solution={puzzle.solution ? puzzle.solution[currentMoveIndex] : null}
                         orientation={orientation}
                         showValidMoves={showValidMoves}
                     />
@@ -214,13 +258,13 @@ export default function GameScreen({ difficulty, onBack, onChangeDifficulty }) {
                         style={styles.hintBtn}
                         onPress={() => {
                             if (puzzle && puzzle.solution) {
-                                const move = puzzle.solution[0]; // e.g. "e2e4"
+                                const move = puzzle.solution[currentMoveIndex]; // e.g. "e2e4"
                                 const from = move.substring(0, 2);
                                 const to = move.substring(2, 4);
 
                                 // Get piece type at 'from' square
                                 // We need a fresh chess instance with current FEN to know what is there
-                                const tempChess = new Chess(puzzle.fen);
+                                const tempChess = new Chess(currentFen);
                                 const piece = tempChess.get(from);
 
                                 if (piece) {
