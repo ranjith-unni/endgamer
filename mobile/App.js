@@ -51,17 +51,22 @@ export default function App() {
 
   useEffect(() => {
     if (appIsReady) {
-      // Start fade out animation
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 800, // Smooth 800ms fade
-        useNativeDriver: true,
-      }).start(() => {
-        setShowSplashOverlay(false);
-      });
+      // Hold the 75% height splash for 1 second as requested
+      const timer = setTimeout(() => {
+        // Start fade out animation
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 800, // Smooth 800ms fade
+          useNativeDriver: true,
+        }).start(() => {
+          setShowSplashOverlay(false);
+        });
+      }, 1000);
       
-      // Hide native splash screen
+      // Hide native splash screen immediately to allow React overlay to take over
       SplashScreen.hideAsync();
+      
+      return () => clearTimeout(timer);
     }
   }, [appIsReady]);
 
@@ -266,7 +271,7 @@ const styles = StyleSheet.create({
   },
   splashImage: {
     width: '100%',
-    height: '100%',
+    height: '75%',
   },
   content: {
     width: '100%',
