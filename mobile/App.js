@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Image, Modal, Animated } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Image, Modal } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import GameScreen from './src/components/GameScreen';
@@ -20,8 +20,8 @@ export default function App() {
 
   const [stats, setStats] = useState({ totalPoints: 0, totalSolved: 0, hintsUsed: 0 });
   const [appIsReady, setAppIsReady] = useState(false);
+  const [splashImageLoaded, setSplashImageLoaded] = useState(false);
   const [showSplashOverlay, setShowSplashOverlay] = useState(true);
-  const fadeAnim = React.useRef(new Animated.Value(1)).current;
   const [showAbout, setShowAbout] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
@@ -50,25 +50,18 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (appIsReady) {
+    // Only proceed if the app is ready AND the React image is loaded in memory
+    if (appIsReady && splashImageLoaded) {
       // Hold the 75% height splash for 1 second as requested
       const timer = setTimeout(() => {
-        // Start fade out animation
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 800, // Smooth 800ms fade
-          useNativeDriver: true,
-        }).start(() => {
-          setShowSplashOverlay(false);
-        });
+        // Instant-pop transition: hide native and React overlay simultaneously
+        SplashScreen.hideAsync();
+        setShowSplashOverlay(false);
       }, 1000);
-      
-      // Hide native splash screen immediately to allow React overlay to take over
-      SplashScreen.hideAsync();
       
       return () => clearTimeout(timer);
     }
-  }, [appIsReady]);
+  }, [appIsReady, splashImageLoaded]);
 
   useEffect(() => {
     if (currentScreen === 'home') {
@@ -164,11 +157,10 @@ export default function App() {
 
         {/* Splash Overlay */}
         {showSplashOverlay && (
-          <Animated.View 
+          <View 
             style={[
               StyleSheet.absoluteFill, 
-              styles.splashContainer, 
-              { opacity: fadeAnim }
+              styles.splashContainer
             ]}
             pointerEvents="none"
           >
@@ -176,8 +168,9 @@ export default function App() {
               source={require('./assets/splash-icon.png')}
               style={styles.splashImage}
               resizeMode="contain"
+              onLoad={() => setSplashImageLoaded(true)}
             />
-          </Animated.View>
+          </View>
         )}
 
         {/* About Modal */}
