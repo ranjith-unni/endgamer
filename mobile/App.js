@@ -36,8 +36,8 @@ export default function App() {
         // Pre-load fonts, make any API calls you need to do here
         await PuzzleManager.init();
         loadStats();
-        // Artificially delay for at least 2 seconds
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Artificially delay for at least 1 second
+        await new Promise(resolve => setTimeout(resolve, 1000));
       } catch (e) {
         console.warn(e);
       } finally {
@@ -50,12 +50,14 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    // Only proceed if the app is ready AND the React image is loaded in memory
+    // Only proceed if the app logic is ready AND the React image is loaded in memory
     if (appIsReady && splashImageLoaded) {
-      // Hold the 75% height splash for 1 second as requested
+      // Hide native splash screen immediately to reveal the React overlay underneath
+      SplashScreen.hideAsync();
+      
+      // Hold the 75% height React splash for 1 second as requested
       const timer = setTimeout(() => {
-        // Instant-pop transition: hide native and React overlay simultaneously
-        SplashScreen.hideAsync();
+        // Instant-pop to reveal the main game menu
         setShowSplashOverlay(false);
       }, 1000);
       
@@ -88,18 +90,7 @@ export default function App() {
     setShowResetConfirm(false);
   };
 
-  if (!appIsReady) {
-    return (
-      <View style={styles.splashContainer}>
-        <Image
-          source={require('./assets/splash-icon.png')}
-          style={styles.splashImage}
-          resizeMode="contain"
-        />
-      </View>
-    );
-  }
-
+  // We now render the main UI structure immediately, but kept hidden under the splash overlay
   return (
     <SafeAreaProvider>
       <View style={styles.container}>
@@ -155,23 +146,22 @@ export default function App() {
           </View>
         )}
 
-        {/* Splash Overlay */}
-        {showSplashOverlay && (
-          <View 
-            style={[
-              StyleSheet.absoluteFill, 
-              styles.splashContainer
-            ]}
-            pointerEvents="none"
-          >
-            <Image
-              source={require('./assets/splash-icon.png')}
-              style={styles.splashImage}
-              resizeMode="contain"
-              onLoad={() => setSplashImageLoaded(true)}
-            />
-          </View>
-        )}
+        {/* Splash Overlay - Always rendered but opacity controlled to prevent unmounting flicker */}
+        <View 
+          style={[
+            StyleSheet.absoluteFill, 
+            styles.splashContainer,
+            { opacity: showSplashOverlay ? 1 : 0 }
+          ]}
+          pointerEvents={showSplashOverlay ? 'auto' : 'none'}
+        >
+          <Image
+            source={require('./assets/splash-icon.png')}
+            style={styles.splashImage}
+            resizeMode="contain"
+            onLoad={() => setSplashImageLoaded(true)}
+          />
+        </View>
 
         {/* About Modal */}
         {showAbout && (
