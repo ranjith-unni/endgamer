@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Image, Modal } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Image, Modal, Animated } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import GameScreen from './src/components/GameScreen';
@@ -20,12 +20,19 @@ export default function App() {
 
   const [stats, setStats] = useState({ totalPoints: 0, totalSolved: 0, hintsUsed: 0 });
   const [appIsReady, setAppIsReady] = useState(false);
+  const [showSplashOverlay, setShowSplashOverlay] = useState(true);
+  const fadeAnim = React.useRef(new Animated.Value(1)).current;
   const [showAbout, setShowAbout] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   useEffect(() => {
     async function prepare() {
       try {
+        // Set web body color to black immediately to prevent white flashes
+        if (typeof document !== 'undefined') {
+          document.body.style.backgroundColor = '#000000';
+        }
+        
         // Pre-load fonts, make any API calls you need to do here
         await PuzzleManager.init();
         loadStats();
@@ -44,6 +51,16 @@ export default function App() {
 
   useEffect(() => {
     if (appIsReady) {
+      // Start fade out animation
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 800, // Smooth 800ms fade
+        useNativeDriver: true,
+      }).start(() => {
+        setShowSplashOverlay(false);
+      });
+      
+      // Hide native splash screen
       SplashScreen.hideAsync();
     }
   }, [appIsReady]);
@@ -85,62 +102,78 @@ export default function App() {
     );
   }
 
-  if (currentScreen === 'game') {
-    return (
-      <SafeAreaProvider>
-        <GameScreen difficulty={difficulty} onBack={goHome} onChangeDifficulty={setDifficulty} />
-      </SafeAreaProvider>
-    );
-  }
-
   return (
     <SafeAreaProvider>
       <View style={styles.container}>
         <StatusBar style="light" />
 
-        <View style={styles.content}>
-          <Text style={styles.title}>EndGamer</Text>
-          <Text style={styles.subtitle}>Chess Endgame Trainer</Text>
+        {currentScreen === 'game' ? (
+          <GameScreen difficulty={difficulty} onBack={goHome} onChangeDifficulty={setDifficulty} />
+        ) : (
+          <View style={styles.content}>
+            <Text style={styles.title}>EndGamer</Text>
+            <Text style={styles.subtitle}>Chess Endgame Trainer</Text>
 
-          <View style={styles.menu}>
-            <TouchableOpacity
-              style={[styles.button, styles.easyBtn]}
-              onPress={() => startGame('easy')}
-            >
-              <Text style={styles.btnText}>Easy (Mate in 1)</Text>
+            <View style={styles.menu}>
+              <TouchableOpacity
+                style={[styles.button, styles.easyBtn]}
+                onPress={() => startGame('easy')}
+              >
+                <Text style={styles.btnText}>Easy (Mate in 1)</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.button, styles.mediumBtn]}
+                onPress={() => startGame('medium')}
+              >
+                <Text style={styles.btnText}>Medium (Mate in 2)</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.button, styles.hardBtn]}
+                onPress={() => startGame('hard')}
+              >
+                <Text style={styles.btnText}>Hard (Mate in 3)</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.statsContainer}>
+              <Text style={styles.statsText}>Unsolved Puzzles: {stats.totalUnsolved}</Text>
+              <Text style={styles.statsText}>Solved: {stats.totalSolved}</Text>
+              <Text style={styles.statsText}>Hints Used: {stats.hintsUsed}</Text>
+            </View>
+          </View>
+        )}
+
+        {currentScreen === 'home' && (
+          <View style={styles.footer}>
+            <TouchableOpacity onPress={() => setShowAbout(true)} style={styles.aboutBtn}>
+              <Text style={styles.aboutText}>About EndGamer</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.button, styles.mediumBtn]}
-              onPress={() => startGame('medium')}
-            >
-              <Text style={styles.btnText}>Medium (Mate in 2)</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.button, styles.hardBtn]}
-              onPress={() => startGame('hard')}
-            >
-              <Text style={styles.btnText}>Hard (Mate in 3)</Text>
+            <TouchableOpacity onPress={() => setShowResetConfirm(true)} style={styles.resetBtn}>
+              <Text style={styles.resetText}>Reset Progress</Text>
             </TouchableOpacity>
           </View>
+        )}
 
-          <View style={styles.statsContainer}>
-            <Text style={styles.statsText}>Unsolved Puzzles: {stats.totalUnsolved}</Text>
-            <Text style={styles.statsText}>Solved: {stats.totalSolved}</Text>
-            <Text style={styles.statsText}>Hints Used: {stats.hintsUsed}</Text>
-          </View>
-        </View>
-
-        <View style={styles.footer}>
-          <TouchableOpacity onPress={() => setShowAbout(true)} style={styles.aboutBtn}>
-            <Text style={styles.aboutText}>About EndGamer</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => setShowResetConfirm(true)} style={styles.resetBtn}>
-            <Text style={styles.resetText}>Reset Progress</Text>
-          </TouchableOpacity>
-        </View>
+        {/* Splash Overlay */}
+        {showSplashOverlay && (
+          <Animated.View 
+            style={[
+              StyleSheet.absoluteFill, 
+              styles.splashContainer, 
+              { opacity: fadeAnim }
+            ]}
+            pointerEvents="none"
+          >
+            <Image
+              source={require('./assets/splash-icon.png')}
+              style={styles.splashImage}
+              resizeMode="contain"
+            />
+          </Animated.View>
+        )}
 
         {/* About Modal */}
         {showAbout && (
