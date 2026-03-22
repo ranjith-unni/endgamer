@@ -257,7 +257,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 40,
   },
   splashContainer: {
     flex: 1,
@@ -273,6 +272,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     padding: 20,
+    paddingTop: 60, // Restore lost root padding
   },
   title: {
     fontSize: 42,

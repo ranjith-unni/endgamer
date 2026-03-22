@@ -514,13 +514,13 @@ export default function GameScreen({ difficulty, onBack, onChangeDifficulty }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#2a2a2a', // Dark theme like web
+        backgroundColor: '#000000', // Dark black as requested
     },
     center: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#2a2a2a',
+        backgroundColor: '#000000',
     },
     header: {
         flexDirection: 'row',
