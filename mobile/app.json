@@ -2,14 +2,14 @@
   "expo": {
     "name": "EndGamer",
     "slug": "endgamer-mobile",
-    "version": "1.1.1",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
+      "resizeMode": "cover",
       "backgroundColor": "#000000"
     },
     "ios": {
@@ -30,7 +30,7 @@
       "eas": {
         "projectId": "cfae62c1-a9d6-4f77-a22e-c03949111003"
       },
-      "releaseDate": "2026-03-22",
+      "releaseDate": "2026-03-28",
       "versionCode": "18"
     },
     "runtimeVersion": {
