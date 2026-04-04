@@ -6,6 +6,7 @@ import NativeChessBoard from './NativeChessBoard'; // Changed
 import { Chess } from 'chess.js';
 import PuzzleManager from '../utils/PuzzleManager';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import Constants from 'expo-constants';
 
 export default function GameScreen({ difficulty, onBack, onChangeDifficulty }) {
     const [puzzle, setPuzzle] = useState(null);
@@ -400,13 +401,15 @@ export default function GameScreen({ difficulty, onBack, onChangeDifficulty }) {
                 >
                     <View style={styles.aboutOverlay}>
                         <View style={styles.aboutContent}>
-                            <Image
-                                source={require('../../assets/splash-icon.png')}
-                                style={styles.aboutLogo}
-                                resizeMode="contain"
-                            />
+                            <View style={styles.aboutLogoContainer}>
+                                <Image
+                                    source={require('../../assets/splash-icon.png')}
+                                    style={styles.aboutLogo}
+                                    resizeMode="contain"
+                                />
+                            </View>
                             <Text style={styles.aboutTitle}>EndGamer</Text>
-                            <Text style={styles.aboutVersion}>v1.0.0 (2026)</Text>
+                            <Text style={styles.aboutVersion}>v{Constants.expoConfig?.version || '1.2.1'} build {Constants.expoConfig?.android?.versionCode || Constants.expoConfig?.extra?.versionCode || '18'} ({Constants.expoConfig?.extra?.releaseDate || '2026-04-03'})</Text>
 
                             <Text style={styles.aboutDescription}>
                                 Master the Endgame. Train tactics with select mate-in-N puzzles for chess enthusiasts.
@@ -728,10 +731,18 @@ const styles = StyleSheet.create({
         padding: 30,
         alignItems: 'center',
     },
+    aboutLogoContainer: {
+        width: 120,
+        height: 100,
+        overflow: 'hidden',
+        marginBottom: 0,
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+    },
     aboutLogo: {
         width: 120,
-        height: 120,
-        marginBottom: 10,
+        height: 266, // Proportional height for 900x2000 image
+        marginTop: -10, // Slight nudge up to center the crown better
     },
     aboutTitle: {
         color: '#fff',

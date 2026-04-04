@@ -1,15 +1,15 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Image, Modal } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Image, Modal, Animated } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import GameScreen from './src/components/GameScreen';
 import PuzzleManager from './src/utils/PuzzleManager';
 import Constants from 'expo-constants';
 
-const version = Constants.expoConfig?.version || '1.1.0';
-const versionCode = Constants.expoConfig?.android?.versionCode || Constants.expoConfig?.extra?.versionCode || '17';
-const releaseDate = Constants.expoConfig?.extra?.releaseDate || '2026-03-21';
+const version = Constants.expoConfig?.version || '1.2.1';
+const versionCode = Constants.expoConfig?.android?.versionCode || Constants.expoConfig?.extra?.versionCode || '18';
+const releaseDate = Constants.expoConfig?.extra?.releaseDate || '2026-04-03';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -24,6 +24,9 @@ export default function App() {
   const [showSplashOverlay, setShowSplashOverlay] = useState(true);
   const [showAbout, setShowAbout] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+
+  const splashAnim = React.useRef(new Animated.Value(0)).current;
+  const splashOpacity = React.useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     async function prepare() {
@@ -52,16 +55,29 @@ export default function App() {
   useEffect(() => {
     // Only proceed if the app logic is ready AND the React image is loaded in memory
     if (appIsReady && splashImageLoaded) {
-      // Hide native splash screen immediately to reveal the React overlay underneath
+      // Hide native splash screen immediately to reveal our React layer
       SplashScreen.hideAsync();
       
-      // Hold the 75% height React splash for 1 second as requested
-      const timer = setTimeout(() => {
-        // Instant-pop to reveal the main game menu
+      // Sequence: Growth Animation -> Hold -> Fade Out
+      Animated.sequence([
+        // 1. Smoothly grow from native-icon-size to 75% height
+        Animated.timing(splashAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        // 2. Stabilized brand hold (1.0 second)
+        Animated.delay(1000),
+        // 3. Graceful fade-out to reveal the game menu
+        Animated.timing(splashOpacity, {
+          toValue: 0,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        // Final cleanup: remove overlay from DOM
         setShowSplashOverlay(false);
-      }, 1000);
-      
-      return () => clearTimeout(timer);
+      });
     }
   }, [appIsReady, splashImageLoaded]);
 
@@ -147,31 +163,45 @@ export default function App() {
         )}
 
         {/* Splash Overlay - Always rendered but opacity controlled to prevent unmounting flicker */}
-        <View 
+        <Animated.View 
           style={[
             StyleSheet.absoluteFill, 
             styles.splashContainer,
-            { opacity: showSplashOverlay ? 1 : 0 }
+            { opacity: splashOpacity }
           ]}
           pointerEvents={showSplashOverlay ? 'auto' : 'none'}
         >
-          <Image
+          <Animated.Image
             source={require('./assets/splash-icon.png')}
-            style={styles.splashImage}
+            style={[
+              styles.splashImage,
+              {
+                transform: [
+                  {
+                    scale: splashAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.35, 1], // Start at the same size as the native OS icon
+                    }),
+                  },
+                ],
+              },
+            ]}
             resizeMode="contain"
             onLoad={() => setSplashImageLoaded(true)}
           />
-        </View>
+        </Animated.View>
 
         {/* About Modal */}
         {showAbout && (
           <View style={styles.aboutOverlay}>
             <View style={styles.aboutContent}>
-              <Image
-                source={require('./assets/splash-icon.png')}
-                style={styles.aboutLogo}
-                resizeMode="contain"
-              />
+              <View style={styles.aboutLogoContainer}>
+                <Image
+                  source={require('./assets/splash-icon.png')}
+                  style={styles.aboutLogo}
+                  resizeMode="contain"
+                />
+              </View>
               <Text style={styles.aboutTitle}>EndGamer</Text>
               <Text style={styles.aboutVersion}>v{version} build {versionCode} ({releaseDate})</Text>
 
@@ -404,10 +434,18 @@ const styles = StyleSheet.create({
     padding: 30,
     alignItems: 'center',
   },
+  aboutLogoContainer: {
+    width: 120,
+    height: 100,
+    overflow: 'hidden',
+    marginBottom: 0,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
   aboutLogo: {
     width: 120,
-    height: 120,
-    marginBottom: 10,
+    height: 266, // Proportional height for 900x2000 image
+    marginTop: -10, // Slight nudge up to center the crown better
   },
   aboutTitle: {
     color: '#fff',
